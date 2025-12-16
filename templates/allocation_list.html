@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Allocation List{% endblock %}
+
+{% block header_title %}Allocation List{% endblock %}
+
+{% block content %}
+    <div class="note-box">
+        <p><strong>Note:</strong> Yahan par report ka text paste karein jismein se Work Codes (e.g., 3422003014/RC/...) extract karne hain.</p>
+    </div>
+    
+    <form action="{{ url_for('allocation_list') }}" method="post" style="margin-top: 2rem;">
+        
+        <div class="form-group">
+            <label for="panchayat">Panchayat Name:</label>
+            <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori (file naam ke liye)" required>
+        </div>
+
+        <div class="form-group">
+            <label for="text_data">Paste Text Block Here:</label>
+            <textarea id="text_data" name="text_data" rows="15" placeholder="Yahan poora text paste karein..." required></textarea>
+        </div>
+
+        <div class="action-buttons">
+            <button type="submit" class="btn">Extract & Download CSV</button>
+            <button id="save-cloud-btn" type="button" class="btn secondary">Save to Cloud</button>
+        </div>
+    </form>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container" style="margin-top: 1.5rem;">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Make the event listener async
+    document.getElementById('save-cloud-btn').addEventListener('click', async function() {
+        const contentProvider = function() {
+            const text_data = document.getElementById('text_data').value;
+            if (!text_data) {
+                alert('Please paste some text to extract.');
+                return null;
+            }
+    
+            // --- FIX: Corrected regex pattern (removed extra backslashes) ---
+            const pattern = /\b(34\d{8}(?:\/\w+)+\/\d+)\b/g;
+            // --- END FIX ---
+
+            const matches = [...text_data.matchAll(pattern)];
+            if (!matches || matches.length === 0) {
+                alert('No work codes found in the provided text.');
+                return null;
+            }
+    
+            const uniqueCodes = [...new Set(matches.map(m => m[1]))];
+            const csvContent = "Work Code\n" + uniqueCodes.join("\n");
+            return csvContent;
+        };
+        
+        const panchayat = document.getElementById('panchayat').value.trim();
+        // --- FIX: Added check for panchayat name ---
+        if (!panchayat) {
+            alert('Please enter a Panchayat Name to save the file.');
+            return;
+        }
+        const baseFilename = panchayat + '_workcodes.csv';
+    
+        // Await the refactored handler
+        await handleCloudSaveClick(contentProvider, 'Uploads/worklist', baseFilename, this);
+    });
+    </script>
+    {% endblock %}

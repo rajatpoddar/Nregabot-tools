@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Preview - {{ data.bill_no }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: var(--bg-color); font-family: 'Roboto', 'Noto Sans Devanagari', sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .controls { margin: 15px; padding: 10px; background: white; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.2); display: flex; gap: 1rem; }
+        .btn.secondary { background-color: var(--secondary-color); }
+        .btn.secondary:hover { background-color: #5a6268; }
+        .page { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2); font-size: 11pt; color: #333; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #666; padding: 6px; vertical-align: top; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 18pt; }
+        .details-grid { display: grid; grid-template-columns: 1.2fr 1fr; border: 1px solid #666; }
+        .items-table th { background-color: #f2f2f2; }
+
+        /* Styles for the Diagram Layout */
+        .summary-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 1.5rem;
+        }
+        .summary-left {
+            width: 55%;
+        }
+        .summary-right {
+            width: 43%;
+        }
+        .amount-in-words {
+            border: 1px solid #666;
+            padding: 8px;
+            margin-bottom: 1rem;
+        }
+        .bank-details table, .totals-table {
+            width: 100%;
+        }
+        .footer-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-right: 50px;
+        }
+        .signature-section { margin-top: 1rem; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 2.5rem 1rem; }
+        .signature-section > div { width: 120px; text-align: center; border-top: 1px solid #666; padding-top: 5px; }
+        
+        @media print {
+            body { background-color: white; }
+            .controls { display: none; }
+            .page { margin: 0; padding: 0; box-shadow: none; border: none; min-height: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="window.print()" class="btn">🖨️ Print Invoice</button>
+        <a href="{{ url_for('index', delivery_note=data.delivery_note, terms_of_payment=data.terms_of_payment, panchayat=data.panchayat, block=data.block, district=data.district, signatures=data.signatures) }}" class="btn secondary">Generate More Bills</a>
+    </div>
+
+<div class="page">
+    <div class="header">
+        <h1 class="font-bold">{{ vendor.name.upper() }}</h1>
+        <p>{{ vendor.address }}</p>
+        <p>MOB: {{ vendor.mobile }}</p>
+    </div>
+    <div class="invoice-title-section" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+        <div>GSTIN/UIN: {{ vendor.gstin }}</div>
+        <div class="invoice-title" style="font-size: 14pt; font-weight: bold; text-decoration: underline;">TAX INVOICE</div>
+    </div>
+    <div class="details-grid">
+        <div class="buyer-details" style="border-right: 1px solid #666; padding: 6px;">
+            <p class="font-bold">Buyer's Details</p>
+            <p style="font-size: 10pt;">{{ data.work_description }}</p>
+            <p><strong>Panchayat:</strong> {{ data.panchayat }}</p>
+            <p><strong>Block:</strong> {{ data.block }}</p>
+            <p><strong>District:</strong> {{ data.district }}</p>
+        </div>
+        <div class="invoice-details" style="padding: 6px;">
+            <table style="border-top: 1px solid #666;">
+                <tr><td style="border: none; border-right: 1px solid #666; border-bottom: 1px solid #666;"><strong>Invoice No:</strong> {{ data.bill_no }}</td><td style="border: none; border-bottom: 1px solid #666;"><strong>Dated:</strong> {{ data.bill_date }}</td></tr>
+                <tr><td style="border: none; border-right: 1px solid #666; border-bottom: 1px solid #666;"><strong>Delivery Note:</strong></td><td style="border: none; border-bottom: 1px solid #666;">{{ data.delivery_note }}</td></tr>
+                <tr><td style="border: none; border-right: 1px solid #666; border-bottom: 1px solid #666;"><strong>Buyer's Order No:</strong></td><td style="border: none; border-bottom: 1px solid #666;"></td></tr>
+                <tr><td colspan="2" style="border: none; border-right: 1px solid #666; border-bottom: 1px solid #666;">{{ data.work_code }}</td></tr>
+                <tr><td style="border: none; border-right: 1px solid #666;"><strong>Terms of Payment:</strong></td><td style="border: none;">{{ data.terms_of_payment }}</td></tr>
+            </table>
+        </div>
+    </div>
+    <br>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Sl No.</th><th style="width: 50%;">Description of Goods</th><th>Qty</th><th>Rate</th><th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data.material_items %}
+            <tr>
+                <td class="text-center">{{ loop.index }}</td><td>{{ item.material }}</td><td class="text-center">{{ "%.2f"|format(item.quantity) }}</td><td class="text-right">{{ "%.2f"|format(item.unit_price) }}</td><td class="text-right">{{ "%.2f"|format(item.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="summary-section">
+        <div class="summary-left">
+            <div class="amount-in-words">
+                <strong>Amount (In words):</strong> {{ data.amount_in_words }}
+            </div>
+            <div class="bank-details">
+                <table>
+                    <tbody>
+                        <tr><td class="font-bold" style="width: 100px;">Bank Name</td><td>{{ vendor.bank_name }}</td></tr>
+                        <tr><td class="font-bold">Account No</td><td>{{ vendor.account_no }}</td></tr>
+                        <tr><td class="font-bold">Branch</td><td>{{ vendor.branch }}</td></tr>
+                        <tr><td class="font-bold">IFSC Code</td><td>{{ vendor.ifsc }}</td></tr>
+                        {% if vendor.payid %}
+                        <tr><td class="font-bold">PAYID</td><td>{{ vendor.payid }}</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="summary-right">
+            <table class="totals-table">
+                <tbody>
+                    <tr>
+                        <td class="text-right font-bold" style="width: 70%;">Subtotal</td>
+                        <td class="text-right">{{ "%.2f"|format(data.subtotal) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right font-bold">Centre GST</td>
+                        <td class="text-right">{{ "%.2f"|format(data.get('cgst', 0.0)) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right font-bold">State GST</td>
+                        <td class="text-right">{{ "%.2f"|format(data.get('sgst', 0.0)) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right font-bold">R/O</td>
+                        <td class="text-right">{{ "%.2f"|format(data.round_off) }}</td>
+                    </tr>
+                    <tr class="font-bold" style="background-color: #f2f2f2;">
+                        <td class="text-right">Total Amount</td>
+                        <td class="text-right">{{ "%.2f"|format(data.final_total) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="footer-section">
+        <div class="signature-block">
+            <p>For {{ vendor.name }}</p>
+        </div>
+    </div>
+    
+    {% if data.signatures %}
+    <div class="signature-section">
+        {% for sig in data.signatures %}
+        <div>{{ sig }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

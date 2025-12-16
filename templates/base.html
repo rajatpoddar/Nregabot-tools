@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nrega Bot- Tools{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+</head>
+<body>
+
+    <header class="admin-header">
+        <div class="header-container">
+            <div class="header-left">
+                <button id="hamburger-btn">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <a href="{{ url_for('home') }}" class="navbar-brand">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Nrega Bot- Tools Logo" class="logo">
+                    Nrega Bot- Tools
+                </a>
+            </div>
+            
+            <h1 class="header-title">
+                {% block header_title %}{% endblock %}
+                {% block header_extra %}{% endblock %}
+            </h1>
+            
+            <div class="header-right">
+                </div>
+        </div>
+    </header>
+
+    <div class="page-wrapper">
+        
+        <aside id="sidebar">
+            <nav class="sidebar-nav">
+                
+                <span class="sidebar-category">Demand</span>
+                <a href="{{ url_for('allocation_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'allocation_list' else '' }}">
+                    <i class="fa-solid fa-wand-magic-sparkles fa-fw"></i><span>Allocation List</span>
+                </a>
+                <a href="{{ url_for('applicant_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'applicant_list' else '' }}">
+                    <i class="fa-solid fa-address-card fa-fw"></i><span>Applicant List</span>
+                </a>
+                <a href="{{ url_for('contractor_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'contractor_list' else '' }}">
+                    <i class="fa-solid fa-list-check fa-fw"></i><span>Contractor List</span>
+                </a>
+                <span class="sidebar-category">WC Gen</span>
+                <a href="{{ url_for('scheme_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'scheme_list' else '' }}">
+                    <i class="fa-solid fa-hashtag fa-fw"></i><span>Scheme List</span>
+                </a>
+                <div class="sidebar-footer">
+                    <div class="theme-switcher">
+                        <button id="theme-toggle" class="theme-btn">
+                            <i class="fas fa-sun"></i>
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <select id="theme-select">
+                            <option value="auto">Auto</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <div id="sidebar-backdrop"></div>
+
+        <main class="content-wrapper">
+            <div class="content-scroll-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+        
+                <div class="card">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="content-footer">
+        <p>&copy; 2025 <a href="https://nregabot.com">Nrega Bot</a>. All Rights Reserved.</p>
+    </footer>
+
+    <div id="cloud-file-picker-modal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; padding: 1rem;">
+        <div class="card" style="width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--light-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0;">Choose a File from Cloud</h2>
+                <button type="button" onclick="closeCloudFilePicker()" style="font-size: 2rem; background: none; border: none; cursor: pointer; color: var(--light-text); line-height: 1;">&times;</button>
+            </div>
+            <div id="cloud-file-list" style="overflow-y: auto; flex-grow: 1; min-height: 300px; border: 1px solid var(--light-border); border-radius: 8px;">
+                <p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading files...</p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                <button type="button" onclick="closeCloudFilePicker()" class="btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Sidebar Toggle Script
+        // ... (yeh script waisa hi rahega) ...
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menu = document.querySelector('#mobile-menu'); // Old hamburger, reused variable
+        const menuLinks = document.querySelector('.nav-links'); // Old links
+        
+        function toggleSidebar() {
+            sidebar.classList.toggle('is-active');
+            backdrop.classList.toggle('is-active');
+            hamburgerBtn.classList.toggle('is-active');
+        }
+
+        if (hamburgerBtn) {
+            hamburgerBtn.addEventListener('click', toggleSidebar);
+        }
+        if (backdrop) {
+            backdrop.addEventListener('click', toggleSidebar);
+        }
+        // End Sidebar Script
+
+        // Theme Switcher Script
+        // ... (yeh script waisa hi rahega) ...
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeSelect = document.getElementById('theme-select');
+        const body = document.body;
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+        }
+
+        function setTheme(theme) {
+            if (theme === 'auto') {
+                localStorage.removeItem('theme');
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    applyTheme('dark');
+                } else {
+                    applyTheme('light');
+                }
+            } else {
+                localStorage.setItem('theme', theme);
+                applyTheme(theme);
+            }
+            themeSelect.value = theme;
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        themeSelect.addEventListener('change', (e) => {
+            setTheme(e.target.value);
+        });
+
+        // Apply theme on initial load
+        const savedTheme = localStorage.getItem('theme') || 'auto';
+        setTheme(savedTheme);
+
+        // Listen for changes in OS theme
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem('theme') === null || localStorage.getItem('theme') === 'auto') {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        // --- START: REFACTORED CLOUD SAVE SCRIPT ---
+        const SERVER_DOMAIN = 'https://license.nregabot.com';
+
+        // 1. Cleaner async login check
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${SERVER_DOMAIN}/check-login-status`, {
+                    method: 'GET',
+                    credentials: 'include' // Yeh session cookie bhejega
+                });
+                if (!response.ok) return false;
+                const data = await response.json();
+                return data.logged_in === true;
+            } catch (err) {
+                console.error('Login check failed:', err);
+                alert('Could not check login status. Is license.nregabot.com online?');
+                return false;
+            }
+        }
+
+        // 2. Cleaner async save function
+        async function saveToCloud(content, relativePath, filename, buttonElement) {
+            const originalText = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                const response = await fetch(`${SERVER_DOMAIN}/files/save-text-as-file`, {
+                    method: 'POST',
+                    credentials: 'include', // Yeh session cookie bhejega
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        relative_path: relativePath,
+                        filename: filename
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    alert('File saved to your NREGA Bot Cloud successfully!');
+                    buttonElement.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+                } else {
+                    throw new Error(result.reason || 'Failed to save file.');
+                }
+            } catch (err) {
+                alert(`Save failed: ${err.message}\n\nPlease ensure you are logged in and have enough storage space.`);
+                buttonElement.innerHTML = 'Save to Cloud'; // Revert text on failure
+            } finally {
+                // Revert button state after 2 seconds on success or failure
+                setTimeout(() => {
+                    buttonElement.innerHTML = 'Save to Cloud';
+                    buttonElement.disabled = false;
+                }, 2000);
+            }
+        }
+
+        // 3. Cleaner async click handler (for simple, client-side data)
+        async function handleCloudSaveClick(contentProviderFn, relativePath, baseFilename, buttonElement) {
+            const originalText = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+
+            const isLoggedIn = await checkLoginStatus();
+
+            if (!isLoggedIn) {
+                alert('You are not logged in.\n\nPlease log in to license.nregabot.com in the new window, then try saving again.');
+                window.open(`${SERVER_DOMAIN}/login`, '_blank');
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+                return;
+            }
+
+            // User is logged in, get content
+            const content = contentProviderFn();
+            if (!content) {
+                // The contentProvider function should show its own alert
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+                return;
+            }
+            
+            // Create dynamic filename
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            const filename = `${baseFilename.replace('.csv', '')}_${timestamp}.csv`;
+
+            // Call the save function
+            await saveToCloud(content, relativePath, filename, buttonElement);
+        }
+        // --- END: REFACTORED CLOUD SAVE SCRIPT ---
+
+
+        // --- NEW: Cloud File PICKER/LOADER Script ---
+        
+        // Yeh promise ke 'resolve' function ko store karega
+        let cloudFilePickerResolver = null;
+
+        /**
+         * (Helper) File picker modal ko band karta hai.
+         */
+        function closeCloudFilePicker() {
+            document.getElementById('cloud-file-picker-modal').style.display = 'none';
+            if (cloudFilePickerResolver) {
+                cloudFilePickerResolver(null); // Agar cancel kiya toh null return karein
+                cloudFilePickerResolver = null;
+            }
+        }
+
+        /**
+         * (Main) File picker modal ko kholta hai aur files list karta hai.
+         * @param {string} relativePath - Path jahan se files list karni hai (e.g., 'Uploads/jobcards').
+         * @returns {Promise<Object|null>} Ek promise jo file {content, filename} object ya null ke saath resolve hota hai.
+         */
+        async function loadFromCloud(relativePath) {
+            const modal = document.getElementById('cloud-file-picker-modal');
+            const fileListDiv = document.getElementById('cloud-file-list');
+            
+            modal.style.display = 'flex';
+            fileListDiv.innerHTML = '<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading files...</p>';
+
+            // Ek promise banayein jo tab resolve hoga jab user file select karega
+            return new Promise(async (resolve, reject) => {
+                cloudFilePickerResolver = resolve; // resolve function ko globally store karein
+
+                try {
+                    // SERVER_DOMAIN 'https://license.nregabot.com' hai (upar define kiya gaya hai)
+                    const response = await fetch(`${SERVER_DOMAIN}/files/api/web/list-path`, {
+                        method: 'POST',
+                        credentials: 'include', // Cookie bhejega
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ path: relativePath })
+                    });
+                    
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.reason || 'Failed to fetch file list.');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        if (data.files.length === 0) {
+                            fileListDiv.innerHTML = '<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);">Is location par koi files nahi mili.</p>';
+                            return;
+                        }
+                        
+                        fileListDiv.innerHTML = ''; // Loading hatayein
+                        const ul = document.createElement('ul');
+                        ul.style.listStyle = 'none';
+                        ul.style.padding = '0.5rem';
+                        
+                        // Files ko list mein add karein
+                        data.files.forEach(file => {
+                            const li = document.createElement('li');
+                            li.style.padding = '0.75rem';
+                            li.style.display = 'flex';
+                            li.style.justifyContent = 'space-between';
+                            li.style.alignItems = 'center';
+                            li.style.cursor = 'pointer';
+                            li.style.borderRadius = '8px';
+                            // Dynamic hover color based on theme
+                            li.onmouseover = () => { li.style.backgroundColor = 'var(--light-bg)'; };
+                            li.onmouseout = () => { li.style.backgroundColor = 'transparent'; };
+                            
+                            li.innerHTML = `
+                                <div>
+                                    <p style="font-weight: 500; color: var(--light-text);">${file.filename}</p>
+                                    <p style="font-size: 0.8rem; color: var(--secondary-color);">${file.filesize} - ${file.uploaded_at}</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right" style="color: var(--secondary-color);"></i>
+                            `;
+                            li.onclick = () => handleFileSelect(file.id, file.filename);
+                            ul.appendChild(li);
+                        });
+                        fileListDiv.appendChild(ul);
+                        
+                    } else {
+                        throw new Error(data.reason || 'Failed to list files.');
+                    }
+                } catch (err) {
+                    fileListDiv.innerHTML = `<p style="color: red; text-align: center; padding: 4rem 0;">Error: ${err.message}</p>`;
+                }
+            });
+        }
+
+        /**
+         * (Helper) Jab user modal mein file par click karta hai tab yeh call hota hai.
+         * @param {number} fileId - File ki ID jise fetch karna hai.
+         * @param {string} filename - File ka naam.
+         */
+        async function handleFileSelect(fileId, filename) {
+            const fileListDiv = document.getElementById('cloud-file-list');
+            fileListDiv.innerHTML = `<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading file content for ${filename}...</p>`;
+            
+            try {
+                const response = await fetch(`${SERVER_DOMAIN}/files/api/web/get-content/${fileId}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.reason || 'Failed to get file content.');
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    if (cloudFilePickerResolver) {
+                        // Promise ko file content ke saath resolve karein
+                        cloudFilePickerResolver({
+                            content: data.content,
+                            filename: data.filename
+                        });
+                        cloudFilePickerResolver = null;
+                    }
+                    closeCloudFilePicker(); // Success par modal band karein
+                } else {
+                    throw new Error(data.reason || 'Failed to get content.');
+                }
+                
+            } catch (err) {
+                 fileListDiv.innerHTML = `<p style="color: red; text-align: center; padding: 4rem 0;">Error: ${err.message}</p>`;
+                 if (cloudFilePickerResolver) {
+                    cloudFilePickerResolver(null); // Error par null resolve karein
+                    cloudFilePickerResolver = null;
+                }
+            }
+        }
+        // --- END: Cloud File PICKER/LOADER Script ---
+
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block header_title %}Welcome to Nrega Bot Tools{% endblock %}
+
+{% block content %}
+    <h2>Overview</h2>
+    <p>Yeh tools aapke Nrega Bot Desktop Application ke liye zaroori CSV files ko tezi se generate karne mein madad karte hain.</p>
+    <hr>
+
+    <h3>Demand Automation Tools</h3>
+    
+    <h4><i class="fa-solid fa-address-card fa-fw"></i> Applicant List</h4>
+    <p>
+        NREGA portal se save kiye gaye 'Application Register' HTML file ko process karta hai.
+        Yeh tool uss file se sabhi <strong>Applicant Names</strong> aur <strong>Job Card Numbers</strong> ko nikaal kar ek saaf CSV file banata hai.
+    </p>
+    <p><strong>Use:</strong> Yeh CSV file aapke Desktop App mein <strong>Demand Tab</strong> ke liye primary input hai.</p>
+    <a href="{{ url_for('applicant_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
+    
+    <h4 style="margin-top: 2.5rem;"><i class="fa-solid fa-list-check fa-fw"></i> Contractor List</h4>
+    <p>
+        "Applicant List" se banayi gayi CSV file ko upload karke use filter karne mein madad karta hai.
+        Aap poori list mein se apne labourers ko (naam ya job card se) <strong>search karke select</strong> kar sakte hain.
+    </p>
+    <p><strong>Use:</strong> Yeh tool contractors ko apni team ki ek chhoti, manageable CSV list banane mein madad karta hai, jise Demand Tab mein istemaal kiya ja sakta hai.</p>
+    <a href="{{ url_for('contractor_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
+    <h4 style="margin-top: 2.5rem;"><i class="fa-solid fa-wand-magic-sparkles fa-fw"></i> Allocation List</h4>
+    <p>
+        NREGA report se copy kiye gaye raw text block se <strong>Work Codes</strong> (e.g., 34.../RC/...) ko extract karta hai.
+    </p>
+    <p><strong>Use:</strong> Isse banayi gayi CSV ko Desktop App ke <strong>Demand Tab</strong> mein 'Load' button se load kiya ja sakta hai taaki 'Auto-Allocate' feature ka istemaal kiya ja sake.</p>
+    <a href="{{ url_for('allocation_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
+    <hr>
+
+    <h3>WC Gen Automation Tools</h3>
+    
+    <h4><i class="fa-solid fa-hashtag fa-fw"></i> Scheme List</h4>
+    <p>
+        Yeh ek web-based form (Excel jaisa) hai jisse aap aasani se Work Code generation ke liye zaroori complex "Scheme List" CSV file bana sakte hain.
+        Yeh tool data (khata, plot, village, beneficiary details, etc.) ko sahi format mein taiyaar karne mein help karta hai.
+    </p>
+    <p><strong>Use:</strong> Yahan se generate ki gayi CSV file Desktop App ke <strong>WC Gen Tab</strong> mein batch automation ke liye input ka kaam karti hai.</p>
+    <a href="{{ url_for('scheme_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
+{% endblock %}

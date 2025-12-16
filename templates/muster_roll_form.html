@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Generate Muster Roll{% endblock %}
+
+{% block header_title %}Generate New Muster Roll{% endblock %}
+
+{% block content %}
+{# <h1>Generate New Muster Roll</h1> <-- MOVED TO HEADER #}
+
+<div class="note-box">
+    <p><strong>Note:</strong> Generate copy of misplaced Duplicate Mason "Skilled & Semi-Skilled" muster roll.</p>
+</div>
+
+<form method="post" action="{{ url_for('generate_muster_roll') }}">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="state">State</label>
+            <input type="text" name="state" id="state" value="JHARKHAND" required>
+        </div>
+        <div class="form-group">
+            <label for="mr_no">Muster Roll Number</label>
+            <input type="text" name="mr_no" id="mr_no" required>
+        </div>
+        <div class="form-group">
+            <label for="financial_year">Financial Year</label>
+            <input type="text" name="financial_year" id="financial_year" value="2025-2026" required>
+        </div>
+        <div class="form-group">
+            <label for="panchayat">Panchayat</label>
+            <input type="text" name="panchayat" id="panchayat" required>
+        </div>
+        <div class="form-group">
+            <label for="block">Block</label>
+            <input type="text" name="block" id="block" required>
+        </div>
+        <div class="form-group">
+            <label for="district">District</label>
+            <input type="text" name="district" id="district" required>
+        </div>
+    </div>
+
+    <hr style="margin: 2rem 0;">
+
+    <div class="form-group">
+        <label for="work_name">Work Name</label>
+        <textarea name="work_name" id="work_name" required rows="3" placeholder="Enter the full work name..."></textarea>
+    </div>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="work_code">Work Code</label>
+            <input type="text" name="work_code" id="work_code" required>
+        </div>
+        <div class="form-group">
+            <label for="agency">Agency</label>
+            <input type="text" name="agency" id="agency" value="Gram Panchayat" required>
+        </div>
+        <div class="form-group">
+            <label for="mate_name">Mate Name</label>
+            <input type="text" name="mate_name" id="mate_name">
+        </div>
+    </div>
+    
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="tech_sanction_no">Technical Sanction No.</label>
+            <input type="text" name="tech_sanction_no" id="tech_sanction_no">
+        </div>
+        <div class="form-group">
+            <label for="tech_sanction_date">Technical Sanction Date</label>
+            <input type="text" name="tech_sanction_date" id="tech_sanction_date" placeholder="dd/mm/yyyy">
+        </div>
+        <div class="form-group">
+            <label for="fin_sanction_no">Financial Sanction No.</label>
+            <input type="text" name="fin_sanction_no" id="fin_sanction_no">
+        </div>
+        <div class="form-group">
+            <label for="fin_sanction_date">Financial Sanction Date</label>
+            <input type="text" name="fin_sanction_date" id="fin_sanction_date" placeholder="dd/mm/yyyy">
+        </div>
+        <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input type="text" name="start_date" id="start_date" placeholder="dd/mm/yyyy" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="text" name="end_date" id="end_date" placeholder="dd/mm/yyyy" required>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn">Generate Muster Roll</button>
+</form>
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    textarea[rows="3"] {
+        height: 100px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,7 @@
+Flask
+fpdf2
+num2words
+requests
+beautifulsoup4
+gunicorn
+whitenoise

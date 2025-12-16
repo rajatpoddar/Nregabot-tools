@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Applicant List{% endblock %}
+
+{% block header_title %}Applicant List{% endblock %}
+
+{% block content %}
+    <div class="note-box">
+        <p><strong>How to get the file:</strong> Go to the Panchayat Reports on R5.IPPE > 1. Application Register. Once the page loads, save it by pressing <strong>Ctrl+S</strong> (or Cmd+S). This will save the required HTML file. Upload that file here to extract a CSV for demand automation.</p>
+    </div>
+    
+    <form id="applicant-list-form" action="{{ url_for('applicant_list') }}" method="post" enctype="multipart/form-data" style="margin-top: 2rem;">
+        
+        <div class="form-group">
+            <label for="panchayat">Panchayat Name (Optional):</label>
+            <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori (if left blank, will try to auto-detect)">
+        </div>
+
+        <div class="form-group">
+            <label for="html_file_label_container">Upload Saved HTML File:</label>
+            
+            <input type="file" id="html_file" name="html_file" accept=".html,.htm" required class="file-input-hidden">
+            
+            <div class="file-input-container" id="html_file_label_container">
+                <label for="html_file" class="btn secondary"> <i class="fa-solid fa-upload"></i> Choose File
+                </label>
+                <span id="file-name" class="file-name-display">No file chosen</span>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button type="submit" class="btn">Extract & Download CSV</button>
+            <button id="save-cloud-btn" type="button" class="btn secondary">Save to Cloud</button>
+        </div>
+    </form>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container" style="margin-top: 1.5rem;">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- NEW: Fix for file name display ---
+    document.getElementById('html_file').addEventListener('change', function() {
+        const fileNameDisplay = document.getElementById('file-name');
+        if (this.files.length > 0) {
+            fileNameDisplay.textContent = this.files[0].name;
+        } else {
+            fileNameDisplay.textContent = 'No file chosen';
+        }
+    });
+    // --- END FIX ---
+
+    // This button has custom logic, so it doesn't use handleCloudSaveClick
+    document.getElementById('save-cloud-btn').addEventListener('click', async function() {
+        const buttonElement = this;
+        const originalText = buttonElement.innerHTML;
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+    
+        // Step 1: Check login status
+        const isLoggedIn = await checkLoginStatus();
+        if (!isLoggedIn) {
+            alert('You are not logged in.\n\nPlease log in to license.nregabot.com in the new window, then try saving again.');
+            window.open(`${SERVER_DOMAIN}/login`, '_blank');
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
+            return;
+        }
+    
+        // Step 2: User is logged in, extract data from our *own* server
+        buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Extracting...';
+        const form = document.getElementById('applicant-list-form'); // <-- UPDATED ID
+        const formData = new FormData(form);
+        
+        if (!document.getElementById('html_file').value) {
+            alert('Please select an HTML file to extract.');
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
+            return;
+        }
+    
+        try {
+            // Step 3: Fetch CSV data from the /applicant-list endpoint
+            const response = await fetch("{{ url_for('applicant_list') }}", { // <-- UPDATED url_for
+                method: 'POST',
+                body: formData
+            });
+    
+            if (!response.ok) {
+                const errorHtml = await response.text();
+                const match = /<div class="flash error">(.*?)<\/div>/.exec(errorHtml);
+                if (match && match[1]) throw new Error(match[1]);
+                throw new Error('Failed to extract data. Check file format.');
+            }
+            
+            const csvContent = await response.text();
+            
+            // Step 4: Get filename from header
+            const disposition = response.headers.get('content-disposition');
+            let baseFilename = 'jobcards.csv';
+            if (disposition) {
+                const filenameMatch = /filename="?([^"]+)"?/.exec(disposition);
+                if (filenameMatch && filenameMatch[1]) {
+                    baseFilename = filenameMatch[1];
+                }
+            }
+    
+            // Step 5: Create dynamic filename and save to cloud
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            const finalFilename = `${baseFilename.replace('.csv', '')}_${timestamp}.csv`;
+    
+            // Directly call saveToCloud
+            await saveToCloud(csvContent, 'Uploads/jobcards', finalFilename, buttonElement);
+    
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+            buttonElement.innerHTML = originalText;
+            buttonElement.disabled = false;
+        }
+    });
+    </script>
+    {% endblock %}

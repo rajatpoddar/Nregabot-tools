@@ -1,0 +1,804 @@
+{% extends "base.html" %}
+{% block title %}Contractor List{% endblock %}
+
+{% block header_title %}Contractor's Labour List{% endblock %}
+
+{% block header_extra %}
+<div class="header-stats">
+    <span>Total: <strong id="stat-total">0</strong></span>
+    <span id="stat-deleted-wrapper" style="display: none;">
+        Deleted: <strong id="stat-deleted">0</strong>
+    </span>
+    <span id="stat-matching-wrapper" style="display: none;">
+        Matching: <strong id="stat-matching">0</strong>
+    </span>
+    <span>Selected: <strong id="stat-selected">0</strong></span>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+    <style>
+        /* --- Table Styles --- */
+        #applicant-table-body tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #applicant-table-body tr:not(.selected-row):not(.deleted-row):hover {
+            background-color: #f5f5f5;
+        }
+        body.dark-mode #applicant-table-body tr:not(.selected-row):not(.deleted-row):hover {
+            background-color: #2a2a2a;
+        }
+        .selected-row {
+            background-color: #e6f7ff;
+            font-weight: 500;
+        }
+        body.dark-mode .selected-row {
+            background-color: #004a7c;
+        }
+        .deleted-row, .deleted-row:hover {
+            background-color: #ffe5e5;
+            color: #a83b3b;
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
+        body.dark-mode .deleted-row, body.dark-mode .deleted-row:hover {
+            background-color: #5d1a1a;
+            color: #ffbaba;
+        }
+        #applicant-table td {
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; display: none;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--light-card-bg); padding: 1.5rem; border-radius: 8px;
+            width: 90%; max-width: 600px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; gap: 1rem; max-height: 90vh;
+        }
+        body.dark-mode .modal-content { background: var(--dark-card-bg); border: 1px solid var(--dark-border); }
+        
+        .modal-body-scroll {
+            flex-grow: 1; overflow-y: auto; border: 1px solid var(--light-border);
+            border-radius: 4px; padding: 0;
+        }
+        
+        /* Bulk Textarea */
+        #bulk-textarea {
+            width: 100%; height: 120px; padding: 10px; font-family: monospace;
+            border: 1px solid var(--light-border); border-radius: 4px; resize: vertical;
+        }
+
+        /* Preview Table Styles */
+        .preview-table { width: 100%; border-collapse: collapse; }
+        .preview-table th, .preview-table td { 
+            padding: 0.75rem; border-bottom: 1px solid var(--light-border); text-align: left; 
+        }
+        .preview-table th { background-color: var(--light-bg); position: sticky; top: 0; }
+        body.dark-mode .preview-table th { background-color: #333; }
+        
+        /* Ambiguous Row (Red Shade) */
+        .ambiguous-row {
+            background-color: #fff0f0; /* Light Red */
+        }
+        body.dark-mode .ambiguous-row {
+            background-color: #4a1818;
+        }
+        .ambiguous-flag {
+            color: #dc3545; font-size: 0.8rem; margin-left: 0.5rem; font-weight: bold;
+        }
+        
+        /* Remove Button */
+        .remove-btn {
+            color: #dc3545; cursor: pointer; font-size: 1.1rem;
+            transition: transform 0.2s; border: none; background: none;
+        }
+        .remove-btn:hover { transform: scale(1.2); color: #a71d2a; }
+
+        @media (max-width: 767px) {
+            #applicant-table td { padding-top: 0.9rem; padding-bottom: 0.9rem; }
+            #applicant-table td:nth-child(2) { padding-left: 0.5rem; padding-right: 0.5rem; }
+            #applicant-table td:nth-child(3) { padding-right: 0.5rem; }
+        }
+    </style>
+
+    <div class="note-box">
+        <p><strong>Smart Features:</strong>
+            <ul style="margin: 0.5rem 0 0 1.2rem; padding: 0;">
+                <li><strong>Village Filter:</strong> Dropdown se Village select karein taaki search aur selection aasaan ho.</li>
+                <li><strong>Bulk Select (⚡):</strong> Job Card numbers paste karein. Agar Village selected hai, to sirf usi village ke match honge.</li>
+            </ul>
+        </p>
+    </div>
+
+    <div class="form-group">
+        <label for="csv_file">1. Upload Master Applicant List CSV (Required):</label>
+        <input type="file" id="csv_file" name="csv_file" accept=".csv" class="file-input-hidden">
+        
+        <div class="file-input-container">
+            <label for="csv_file" class="btn secondary"> <i class="fa-solid fa-upload"></i> Choose Master CSV
+            </label>
+            <button id="choose-cloud-btn" type="button" class="btn secondary" style="display: none;">
+                <i class="fa-solid fa-cloud-arrow-down"></i> From Cloud
+            </button>
+            <span id="file-name" class="file-name-display">No file chosen</span>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--light-border);">
+        <label for="existing_file" style="color: var(--primary-color); font-weight: 600;">2. Upload Existing Contractor List (Optional - For Editing):</label>
+        <input type="file" id="existing_file" name="existing_file" accept=".csv" class="file-input-hidden">
+        
+        <div class="file-input-container">
+            <label for="existing_file" class="btn secondary" style="border-color: var(--primary-color);"> <i class="fa-solid fa-file-pen"></i> Choose Existing List
+            </label>
+            <button id="choose-cloud-existing-btn" type="button" class="btn secondary" style="display: none;">
+                <i class="fa-solid fa-cloud-arrow-down"></i> From Cloud
+            </button>
+            <span id="existing-file-name" class="file-name-display">No file chosen (New List)</span>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top: 1.5rem;">
+        <button id="load-csv-btn" class="btn">
+            <i class="fa-solid fa-play"></i> Load & Prepare
+        </button>
+    </div>
+    
+    <p id="loading-message" style="display: none;">Processing files...</p>
+
+    <div id="data-controls" style="display: none;">
+
+        <div class="form-group" style="max-width: 400px;">
+            <label for="contractor_name">Contractor Name:</label>
+            <input type="text" id="contractor_name" placeholder="e.g., Suresh Singh" required>
+        </div>
+
+        <div class="form-group" style="max-width: 400px;">
+            <label for="village-filter">Filter by Village:</label>
+            <select id="village-filter" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--light-border);">
+                <option value="all">All Villages</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="search_box">Search or Bulk Select: 
+                <span id="search-selected-count" class="search-selected-display" style="display: none;">
+                    (<strong id="search-selected-value">0</strong> selected)
+                </span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: stretch; flex-wrap: wrap;">
+                <input type="text" id="search_box" placeholder="Name or last digits..." style="flex-grow: 1; min-width: 200px;">
+                <button id="open-bulk-btn" class="btn secondary" title="Paste multiple numbers" style="white-space: nowrap;">
+                    <i class="fa-solid fa-bolt"></i> Bulk Select
+                </button>
+            </div>
+        </div>
+
+        <p class="table-helper-text">(Click row to select/deselect)</p>
+
+        <div id="table-scroll-container" class="table-wrapper-both-scroll" style="max-height: 50vh;">
+            <table id="applicant-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="col-checkbox"><input type="checkbox" id="select-all-checkbox" title="Select All on This Page"></th>
+                        <th>Name of Applicant</th>
+                        <th>Job Card Number</th>
+                    </tr>
+                </thead>
+                <tbody id="applicant-table-body">
+                    </tbody>
+            </table>
+        </div>
+        
+        <div id="pagination-controls" style="margin-top: 1rem; text-align: center;"></div>
+        
+        <p id="row-count-message" style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem;">
+            Total: <strong class="stat-total-color" id="count-total">0</strong> 
+            <span id="count-deleted-span" style="display: none;">| Del: <strong class="stat-deleted-color" id="count-deleted">0</strong></span>
+            <span id="count-matching-span" style="display: none;">| Match: <strong class="stat-matching-color" id="count-matching">0</strong></span>
+            | Selected: <strong class="stat-selected-color" id="count-selected">0</strong>
+        </p>
+
+        <div class="action-buttons">
+            <button id="preview-btn" class="btn" style="background: linear-gradient(45deg, #17a2b8, #117a8b);">
+                <i class="fa-solid fa-list-check"></i> Preview Selected
+            </button>
+            <button id="download-csv-btn" class="btn">Download Updated CSV</button>
+            <button id="save-cloud-btn" type="button" class="btn secondary" style="display: none;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Save to Cloud
+            </button>
+            <button id="reset-btn" type="button" class="btn secondary" style="background: linear-gradient(45deg, #dc3545, #a71d2a);">
+                <i class="fa-solid fa-arrows-rotate"></i> Reset
+            </button>
+        </div>
+    </div>
+
+    <div id="bulk-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin: 0;">⚡ Bulk Select Job Cards</h3>
+            <p style="font-size: 0.9rem; color: var(--secondary-color); margin: 0;">
+                Paste Job Card numbers below (separated by space, comma, or new line). e.g., <code>660, 502</code>
+            </p>
+            <textarea id="bulk-textarea" placeholder="Paste numbers here..."></textarea>
+            
+            <div id="bulk-result-msg" class="match-summary" style="min-height: 1.2em;"></div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button id="close-bulk-btn" class="btn secondary">Close</button>
+                <button id="apply-bulk-btn" class="btn">Auto Select Matches</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="preview-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Selected Labourers</h3>
+                <button id="close-preview-top" class="remove-btn" style="color: var(--light-text); font-size: 1.5rem;">&times;</button>
+            </div>
+            
+            <p style="font-size: 0.9rem; color: var(--secondary-color); margin: 0;">
+                <span class="ambiguous-flag" style="margin-left: 0;">■ Red Rows</span> indicate multiple labours found for one bulk entry. Please remove unwanted ones.
+            </p>
+
+            <div class="modal-body-scroll">
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job Card</th>
+                            <th style="text-align: center; width: 60px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="preview-table-body">
+                        </tbody>
+                </table>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button id="close-preview-btn" class="btn secondary">Close & Continue</button>
+                <button id="download-from-preview-btn" class="btn">Download CSV</button>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- Elements ---
+    const fileInput = document.getElementById('csv_file');
+    const existingFileInput = document.getElementById('existing_file');
+    const fileNameDisplay = document.getElementById('file-name');
+    const existingFileNameDisplay = document.getElementById('existing-file-name');
+    const loadCsvBtn = document.getElementById('load-csv-btn');
+    const dataControls = document.getElementById('data-controls');
+    const tableBody = document.getElementById('applicant-table-body');
+    const loadingMessage = document.getElementById('loading-message');
+    const searchBox = document.getElementById('search_box');
+    const downloadBtn = document.getElementById('download-csv-btn');
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const paginationControls = document.getElementById('pagination-controls');
+    const contractorNameInput = document.getElementById('contractor_name');
+    const villageFilter = document.getElementById('village-filter'); // NEW
+
+    // Bulk Modal Elements
+    const openBulkBtn = document.getElementById('open-bulk-btn');
+    const bulkModal = document.getElementById('bulk-modal');
+    const closeBulkBtn = document.getElementById('close-bulk-btn');
+    const applyBulkBtn = document.getElementById('apply-bulk-btn');
+    const bulkTextarea = document.getElementById('bulk-textarea');
+    const bulkResultMsg = document.getElementById('bulk-result-msg');
+
+    // Preview Modal Elements
+    const previewBtn = document.getElementById('preview-btn');
+    const previewModal = document.getElementById('preview-modal');
+    const closePreviewBtn = document.getElementById('close-preview-btn');
+    const closePreviewTop = document.getElementById('close-preview-top');
+    const downloadFromPreviewBtn = document.getElementById('download-from-preview-btn');
+    const previewTableBody = document.getElementById('preview-table-body');
+
+    // Buttons & Stats
+    const chooseCloudBtn = document.getElementById('choose-cloud-btn');
+    const chooseCloudExistingBtn = document.getElementById('choose-cloud-existing-btn');
+    const saveCloudBtn = document.getElementById('save-cloud-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const countTotalEl = document.getElementById('count-total');
+    const countSelectedEl = document.getElementById('count-selected');
+    const countMatchingEl = document.getElementById('count-matching');
+    const countMatchingSpan = document.getElementById('count-matching-span');
+    const countDeletedEl = document.getElementById('count-deleted');
+    const countDeletedSpan = document.getElementById('count-deleted-span');
+    const statTotalEl = document.getElementById('stat-total');
+    const statSelectedEl = document.getElementById('stat-selected');
+    const statMatchingEl = document.getElementById('stat-matching');
+    const statMatchingWrapper = document.getElementById('stat-matching-wrapper');
+    const statDeletedEl = document.getElementById('stat-deleted');
+    const statDeletedWrapper = document.getElementById('stat-deleted-wrapper');
+    const searchSelectedCountEl = document.getElementById('search-selected-count');
+    const searchSelectedValueEl = document.getElementById('search-selected-value');
+
+    // --- State ---
+    let allRowsData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    const rowsPerPage = 50;
+    let masterFileContent = null;
+    let existingFileContent = null;
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (typeof checkLoginStatus === 'function') {
+            const isLoggedIn = await checkLoginStatus();
+            if (isLoggedIn) {
+                chooseCloudBtn.style.display = 'inline-block';
+                chooseCloudExistingBtn.style.display = 'inline-block';
+                saveCloudBtn.style.display = 'inline-block';
+            }
+        }
+    });
+
+    // --- File Inputs ---
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileNameDisplay.textContent = fileInput.files[0].name;
+            masterFileContent = null; 
+        } else { fileNameDisplay.textContent = 'No file chosen'; }
+        resetUI();
+    });
+
+    existingFileInput.addEventListener('change', () => {
+        if (existingFileInput.files.length > 0) {
+            existingFileNameDisplay.textContent = existingFileInput.files[0].name;
+            existingFileContent = null;
+            let fname = existingFileInput.files[0].name;
+            if (fname.includes('_labour_list')) contractorNameInput.value = fname.split('_labour_list')[0];
+        } else { existingFileNameDisplay.textContent = 'No file chosen (New List)'; }
+    });
+
+    // --- Load Button ---
+    loadCsvBtn.addEventListener('click', async () => {
+        loadingMessage.style.display = 'block';
+        dataControls.style.display = 'none';
+        try {
+            let masterText = "";
+            if (masterFileContent) masterText = masterFileContent;
+            else if (fileInput.files.length > 0) masterText = await readFileAsText(fileInput.files[0]);
+            else throw new Error("Please choose a Master Applicant List CSV file.");
+
+            let existingJobCards = new Set();
+            if (existingFileContent) existingJobCards = parseExistingCsv(existingFileContent);
+            else if (existingFileInput.files.length > 0) {
+                const text = await readFileAsText(existingFileInput.files[0]);
+                existingJobCards = parseExistingCsv(text);
+            }
+
+            processData(masterText, existingJobCards);
+        } catch (err) {
+            alert(err.message);
+            loadingMessage.style.display = 'none';
+        }
+    });
+
+    // --- Filter Logic ---
+    // Unified function to filter data based on Search + Village
+    function filterData() {
+        const searchTerm = searchBox.value.toLowerCase();
+        const selectedVillage = villageFilter.value;
+
+        filteredData = allRowsData.filter(item => {
+            // Village Check
+            if (selectedVillage !== 'all' && item.villageCode !== selectedVillage) {
+                return false;
+            }
+            // Search Term Check
+            if (searchTerm && !item.name.toLowerCase().includes(searchTerm) && !item.jobCard.toLowerCase().includes(searchTerm)) {
+                return false;
+            }
+            return true;
+        });
+
+        currentPage = 1;
+        setupPagination();
+        displayPage(currentPage);
+        updateRowCount();
+    }
+
+    // Listeners for filters
+    searchBox.addEventListener('keyup', filterData);
+    villageFilter.addEventListener('change', filterData);
+
+
+    // --- Bulk Select Logic (UPDATED) ---
+    openBulkBtn.addEventListener('click', () => {
+        bulkModal.style.display = 'flex';
+        bulkTextarea.value = '';
+        bulkResultMsg.textContent = '';
+        applyBulkBtn.innerHTML = 'Auto Select Matches';
+        applyBulkBtn.classList.remove('btn-success');
+        bulkTextarea.focus();
+    });
+
+    closeBulkBtn.addEventListener('click', () => bulkModal.style.display = 'none');
+
+    // --- Bulk Select Logic (Updated for Space/Tab/Comma) ---
+    applyBulkBtn.addEventListener('click', () => {
+        const text = bulkTextarea.value;
+        if (!text.trim()) return;
+
+        const inputs = text.split(/[\s,]+/).map(s => s.trim()).filter(s => s.length > 0);
+        
+        let foundCount = 0;
+        let notFoundCount = 0;
+        const selectedVillage = villageFilter.value;
+
+        inputs.forEach(input => {
+            let matches = [];
+            
+            for (let item of allRowsData) {
+                if (item.isDeleted) continue;
+                
+                if (selectedVillage !== 'all' && item.villageCode !== selectedVillage) {
+                    continue;
+                }
+
+                // --- STRICT MATCHING LOGIC ---
+                // 1. Short ID Exact Match (e.g. "6" == "6") -> Fixes 6 matching 16
+                // 2. Suffix Exact Match (e.g. "002/6" == "002/6") -> Fixes 002/6 matching 002/16
+                // 3. Full JobCard Exact Match
+                if (item.jobCardShort === input || 
+                    item.jobCardSuffix === input || 
+                    item.jobCard === input) {
+                    matches.push(item);
+                }
+            }
+
+            if (matches.length > 0) {
+                foundCount++;
+                let isAmbiguous = matches.length > 1;
+                matches.forEach(item => {
+                    item.selected = true;
+                    if (isAmbiguous) item.isAmbiguous = true;
+                });
+            } else {
+                notFoundCount++;
+            }
+        });
+
+        filterData(); 
+        
+        bulkResultMsg.innerHTML = `<span class="match-success"><i class="fa-solid fa-check"></i> Successfully selected <strong>${foundCount}</strong> matches.</span> ` + 
+                                  (notFoundCount > 0 ? `<br><span class="match-fail"><i class="fa-solid fa-circle-exclamation"></i> Could not find ${notFoundCount} inputs.</span>` : '');
+        
+        applyBulkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Done!';
+        setTimeout(() => { applyBulkBtn.innerHTML = 'Auto Select Matches'; }, 2000);
+    });
+
+    // --- Preview Modal Logic ---
+    previewBtn.addEventListener('click', showPreview);
+    
+    function showPreview() {
+        const selectedItems = allRowsData.filter(item => item.selected && !item.isDeleted);
+        if (selectedItems.length === 0) {
+            alert("No labourers selected yet.");
+            return;
+        }
+
+        previewTableBody.innerHTML = '';
+        selectedItems.forEach((item, index) => {
+            const originalIndex = allRowsData.indexOf(item);
+            const tr = document.createElement('tr');
+            if (item.isAmbiguous) tr.classList.add('ambiguous-row');
+            
+            tr.innerHTML = `
+                <td>
+                    ${item.name}
+                    ${item.isAmbiguous ? '<span class="ambiguous-flag">(Check Duplicate)</span>' : ''}
+                </td>
+                <td>${item.jobCard} <span style="color:#888; font-size:0.8em;">(Vill: ${item.villageCode})</span></td>
+                <td style="text-align: center;">
+                    <button class="remove-btn" title="Remove from list" onclick="removeFromPreview(${originalIndex})">
+                        <i class="fa-solid fa-circle-minus"></i>
+                    </button>
+                </td>
+            `;
+            previewTableBody.appendChild(tr);
+        });
+        previewModal.style.display = 'flex';
+    }
+
+    window.removeFromPreview = function(originalIndex) {
+        if (allRowsData[originalIndex]) {
+            allRowsData[originalIndex].selected = false;
+            showPreview();
+            filterData(); // Refresh main view
+            
+            const selectedCount = allRowsData.filter(i => i.selected && !i.isDeleted).length;
+            if (selectedCount === 0) previewModal.style.display = 'none';
+        }
+    };
+
+    closePreviewBtn.addEventListener('click', () => previewModal.style.display = 'none');
+    closePreviewTop.addEventListener('click', () => previewModal.style.display = 'none');
+    downloadFromPreviewBtn.addEventListener('click', () => { downloadBtn.click(); });
+
+
+    // --- Core Processing ---
+    function readFileAsText(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => reject(new Error("Failed to read file"));
+            reader.readAsText(file);
+        });
+    }
+
+    function parseExistingCsv(text) {
+        const jobCards = new Set();
+        const rows = text.split(/\r?\n/).filter(row => row.trim() !== '');
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].split(',').map(col => col.trim().replace(/"/g, ''));
+            if (cols.length >= 2) {
+                let jc = cols[1]; 
+                if (jc && (jc.includes('/') || jc.includes('-'))) jobCards.add(jc);
+            }
+        }
+        return jobCards;
+    }
+
+    function processData(masterText, preSelectedJobCards) {
+        allRowsData = [];
+        const villageSet = new Set();
+        
+        const rows = masterText.split(/\r?\n/).filter(row => row.trim() !== '');
+        if (rows.length <= 1) throw new Error('Master file is empty or invalid.');
+
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i].split(',').map(col => col.trim().replace(/"/g, ''));
+            if (cols.length >= 2 && cols[0] && cols[1]) {
+                let originalName = cols[0];
+                let jobCardFull = cols[1];
+                let isDeleted = originalName.endsWith('*');
+                let isSelected = false;
+                
+                if (!isDeleted && preSelectedJobCards.size > 0) {
+                    if (preSelectedJobCards.has(jobCardFull)) isSelected = true;
+                }
+
+                // Parsing Logic
+                const jobCardParts = jobCardFull.split('-');
+                // Example: JH-22-003-019-006/660
+                // lastPart = "006/660" (Ye hai Village/Number Suffix)
+                const lastPart = jobCardParts[jobCardParts.length - 1];
+                
+                let jobCardShort = lastPart;
+                let villageCode = "Unknown";
+                let jobCardSuffix = lastPart; // Store "002/6" style suffix
+
+                if (lastPart.includes('/')) {
+                    const slashParts = lastPart.split('/');
+                    jobCardShort = slashParts[1]; // "660" or "6"
+                    villageCode = slashParts[0];  // "006" or "002"
+                } else {
+                    if (jobCardParts.length >= 2) {
+                        villageCode = jobCardParts[jobCardParts.length - 2]; 
+                    }
+                }
+                
+                if (villageCode !== "Unknown") villageSet.add(villageCode);
+
+                allRowsData.push({ 
+                    name: originalName, 
+                    jobCard: jobCardFull, 
+                    jobCardShort: jobCardShort, // e.g. "6"
+                    jobCardSuffix: jobCardSuffix, // e.g. "002/6"
+                    villageCode: villageCode,
+                    selected: isSelected, 
+                    isDeleted: isDeleted, 
+                    isAmbiguous: false
+                });
+            }
+        }
+
+        populateVillageDropdown(villageSet);
+
+        filteredData = allRowsData;
+        loadingMessage.style.display = 'none';
+        
+        if (allRowsData.length > 0) {
+            dataControls.style.display = 'block';
+            currentPage = 1;
+            setupPagination();
+            displayPage(currentPage);
+            updateRowCount();
+            selectAllCheckbox.checked = false;
+        } else {
+            alert('No valid data found in Master file.');
+        }
+    }
+
+    function populateVillageDropdown(villageSet) {
+        villageFilter.innerHTML = '<option value="all">All Villages</option>';
+        const sortedVillages = Array.from(villageSet).sort();
+        sortedVillages.forEach(vCode => {
+            const option = document.createElement('option');
+            option.value = vCode;
+            option.textContent = `Village ${vCode}`;
+            villageFilter.appendChild(option);
+        });
+    }
+
+    function resetUI() {
+        dataControls.style.display = 'none';
+        paginationControls.innerHTML = '';
+        tableBody.innerHTML = '';
+        allRowsData = []; filteredData = [];
+        updateRowCount();
+    }
+
+    // --- UI Interactions ---
+    selectAllCheckbox.addEventListener('change', () => {
+        const isChecked = selectAllCheckbox.checked;
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const paginatedItems = filteredData.slice(start, end);
+        for (const item of paginatedItems) {
+            if (!item.isDeleted) {
+                const originalItem = allRowsData.find(row => row.jobCard === item.jobCard);
+                if (originalItem) originalItem.selected = isChecked;
+            }
+        }
+        displayPage(currentPage); updateRowCount();
+    });
+
+    tableBody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('row-checkbox')) {
+            const tr = e.target.closest('tr');
+            const jobCard = e.target.dataset.jobcard;
+            const originalItem = allRowsData.find(row => row.jobCard === jobCard);
+            if (originalItem) {
+                originalItem.selected = e.target.checked;
+                tr.classList.toggle('selected-row', e.target.checked);
+            }
+            updateRowCount();
+        }
+    });
+
+    tableBody.addEventListener('click', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+        const tr = e.target.closest('tr');
+        if (!tr) return;
+        const cb = tr.querySelector('.row-checkbox');
+        if (!cb || cb.disabled) return;
+        cb.checked = !cb.checked;
+        const jobCard = cb.dataset.jobcard;
+        const originalItem = allRowsData.find(row => row.jobCard === jobCard);
+        if (originalItem) originalItem.selected = cb.checked;
+        tr.classList.toggle('selected-row', cb.checked);
+        updateRowCount();
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        const contractorName = contractorNameInput.value.trim();
+        if (!contractorName) { alert('Please enter a Contractor Name.'); return; }
+        const csvContent = getSelectedCsvContent();
+        if (!csvContent) { alert('Please select at least one labourer.'); return; }
+        const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', contractorName + '_labour_list.csv');
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    });
+
+    resetBtn.addEventListener('click', () => {
+        if (confirm('Reset all selections?')) {
+            allRowsData.forEach(item => { item.selected = false; item.isAmbiguous = false; });
+            displayPage(currentPage); updateRowCount(); selectAllCheckbox.checked = false;
+        }
+    });
+
+    // Cloud Logic
+    chooseCloudBtn.addEventListener('click', async function() {
+        if (typeof loadFromCloud === 'function') {
+            try {
+                const file = await loadFromCloud('Uploads/jobcards');
+                if (file && file.content) {
+                    fileInput.value = ''; masterFileContent = file.content;
+                    fileNameDisplay.textContent = file.filename; resetUI();
+                }
+            } catch (err) { alert(err.message); }
+        }
+    });
+
+    chooseCloudExistingBtn.addEventListener('click', async function() {
+        if (typeof loadFromCloud === 'function') {
+            try {
+                const file = await loadFromCloud('Uploads/contractor_list');
+                if (file && file.content) {
+                    existingFileInput.value = ''; existingFileContent = file.content;
+                    existingFileNameDisplay.textContent = file.filename;
+                    let fname = file.filename;
+                    if (fname.includes('_labour_list')) contractorNameInput.value = fname.split('_labour_list')[0];
+                }
+            } catch (err) { alert(err.message); }
+        }
+    });
+
+    saveCloudBtn.addEventListener('click', async function() {
+        const contractorName = contractorNameInput.value.trim();
+        if (!contractorName) { alert('Please enter a Contractor Name.'); return; }
+        const contentProvider = function() {
+            const csvContent = getSelectedCsvContent();
+            if (!csvContent) { alert('Please select at least one labourer.'); return null; }
+            return csvContent;
+        };
+        const baseFilename = contractorName + '_labour_list.csv';
+        await handleCloudSaveClick(contentProvider, 'Uploads/contractor_list', baseFilename, this);
+    });
+
+    // --- Helpers ---
+    function getSelectedCsvContent() {
+        const selectedRows = allRowsData.filter(item => item.selected && !item.isDeleted);
+        if (selectedRows.length === 0) return null;
+        const csvRows = ['"Name of Applicant","Job Card Number"'];
+        selectedRows.forEach(item => {
+            csvRows.push('"' + item.name.replace(/"/g, '""') + '","' + item.jobCard.replace(/"/g, '""') + '"');
+        });
+        return csvRows.join('\r\n');
+    }
+
+    function setupPagination() {
+        paginationControls.innerHTML = '';
+        const pageCount = Math.ceil(filteredData.length / rowsPerPage);
+        if (pageCount <= 1) return;
+        paginationControls.innerHTML = '<button id="prev-page-btn" class="btn secondary scroll-btn">&laquo; Prev</button><span id="page-info" style="margin: 0 1rem; vertical-align: middle;">Page ' + currentPage + ' of ' + pageCount + '</span><button id="next-page-btn" class="btn secondary scroll-btn">Next &raquo;</button>';
+        document.getElementById('prev-page-btn').addEventListener('click', () => { if (currentPage > 1) displayPage(currentPage - 1); });
+        document.getElementById('next-page-btn').addEventListener('click', () => { if (currentPage < pageCount) displayPage(currentPage + 1); });
+    }
+
+    function displayPage(page) {
+        currentPage = page; tableBody.innerHTML = '';
+        if (filteredData.length === 0) { tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No data found.</td></tr>'; return; }
+        const start = (page - 1) * rowsPerPage; const end = start + rowsPerPage;
+        const paginatedItems = filteredData.slice(start, end);
+        for (const item of paginatedItems) {
+            const tr = document.createElement('tr');
+            let rowClass = item.isDeleted ? 'deleted-row' : (item.selected ? 'selected-row' : '');
+            let isDisabled = item.isDeleted ? 'disabled' : '';
+            tr.className = rowClass;
+            tr.innerHTML = `<td class="col-checkbox"><input type="checkbox" class="row-checkbox" data-jobcard="${item.jobCard}" ${item.selected ? 'checked' : ''} ${isDisabled}></td><td>${item.name}</td><td><span class="jobcard-full">${item.jobCard}</span><span class="jobcard-short">${item.jobCardShort}</span></td>`;
+            tableBody.appendChild(tr);
+        }
+        const pageInfo = document.getElementById('page-info');
+        if (pageInfo) {
+            pageInfo.textContent = 'Page ' + currentPage + ' of ' + Math.ceil(filteredData.length / rowsPerPage);
+            document.getElementById('prev-page-btn').disabled = (currentPage === 1);
+            document.getElementById('next-page-btn').disabled = (currentPage === Math.ceil(filteredData.length / rowsPerPage));
+        }
+        selectAllCheckbox.disabled = false; selectAllCheckbox.checked = false;
+    }
+    
+    function updateRowCount() {
+        const totalLoaded = allRowsData.length;
+        const totalMatching = filteredData.length;
+        const totalSelected = allRowsData.filter(item => item.selected && !item.isDeleted).length;
+        const totalDeleted = allRowsData.filter(item => item.isDeleted).length;
+        countTotalEl.textContent = totalLoaded; countSelectedEl.textContent = totalSelected;
+        countDeletedEl.textContent = totalDeleted; countDeletedSpan.style.display = totalDeleted > 0 ? 'inline' : 'none';
+        countMatchingEl.textContent = totalMatching; countMatchingSpan.style.display = totalLoaded !== totalMatching ? 'inline' : 'none';
+        statTotalEl.textContent = totalLoaded; statSelectedEl.textContent = totalSelected;
+        statDeletedEl.textContent = totalDeleted; statDeletedWrapper.style.display = totalDeleted > 0 ? 'inline' : 'none';
+        statMatchingEl.textContent = totalMatching; statMatchingWrapper.style.display = totalLoaded !== totalMatching ? 'inline' : 'none';
+        if (totalSelected > 0) { searchSelectedValueEl.textContent = totalSelected; searchSelectedCountEl.style.display = 'inline'; } else { searchSelectedCountEl.style.display = 'none'; }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Generate Invoice{% endblock %}
+
+{% block header_title %}Generate New Invoice{% endblock %}
+
+{% block content %}
+{# <h1>Generate New Invoice</h1>  <-- MOVED TO HEADER #}
+
+<div class="note-box">
+    <p><strong>Note:</strong> Go to the <a href="https://nregastrep.nic.in/netnrega/materialwise_exp.aspx?lflag=eng&flg=v&state_code=34&state_name=JHARKHAND&page=s&fin_year=2025-2026&Digest=j2DPReAWHWilyKlzUs9qWg" target="_blank">"S5.13 Vendor Wise Expenditure 2025-2026"</a> link, then navigate through District > Block > No. of Vendors > click on a bill no. > Select all and copy the content, then paste it here.</p>
+</div>
+
+<form method="post">
+    <div class="form-group">
+        <label for="pasted_data">1. Paste NREGA Data Block</label>
+        <textarea name="pasted_data" id="pasted_data" required placeholder="Paste the full 'Material Procured' data here..."></textarea>
+    </div>
+
+    <hr style="margin: 2rem 0;">
+
+    <h2>2. Fill or Verify Invoice Details</h2>
+    <p>Details will be auto-filled from the pasted data if found. You can override them here.</p>
+    
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="panchayat">Panchayat</label>
+            <input type="text" name="panchayat" id="panchayat" value="{{ prefill_data.panchayat or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="block">Block</label>
+            <input type="text" name="block" id="block" value="{{ prefill_data.block or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="district">District</label>
+            <input type="text" name="district" id="district" value="{{ prefill_data.district or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="delivery_note">Delivery Note</label>
+            <input type="text" name="delivery_note" id="delivery_note" value="{{ prefill_data.delivery_note or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="terms_of_payment">Terms of Payment</label>
+            <input type="text" name="terms_of_payment" id="terms_of_payment" value="{{ prefill_data.terms_of_payment or '' }}">
+        </div>
+    </div>
+    
+    <hr style="margin: 2rem 0;">
+
+    <div class="form-group">
+        <h2>3. Select Signatories</h2>
+        <div class="signature-options">
+            {% set signatories = ["Vendor", "GRS", "PS", "Mukhiya", "JE", "AE", "BPO", "BDO"] %}
+            {% for sig in signatories %}
+            <label><input type="checkbox" name="signatures" value="{{ sig }}" {% if sig in prefill_data.signatures %}checked{% endif %}> {{ sig }}</label>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <button type="submit" class="btn">Generate Invoice Preview</button>
+</form>
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+</style>
+{% endblock %}

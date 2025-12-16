@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Edit Vendor{% endblock %}
+
+{% block header_title %}Edit Vendor: {{ vendor.name }}{% endblock %}
+
+{% block content %}
+{# <h2>Edit Vendor: {{ vendor.name }}</h2> <-- MOVED TO HEADER #}
+<form method="post">
+    <div class="form-group">
+        <label for="name">Vendor Name</label>
+        <input type="text" name="name" id="name" value="{{ vendor.name }}" required>
+    </div>
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="gstin">GSTIN</label>
+            <input type="text" name="gstin" id="gstin" value="{{ vendor.gstin }}">
+        </div>
+        <div class="form-group">
+            <label for="payid">PAYID</label>
+            <input type="text" name="payid" id="payid" value="{{ vendor.payid }}">
+        </div>
+        <div class="form-group">
+            <label for="mobile">Mobile Number</label>
+            <input type="text" name="mobile" id="mobile" value="{{ vendor.mobile }}">
+        </div>
+        <div class="form-group">
+            <label for="address">Full Address</label>
+            <input type="text" name="address" id="address" value="{{ vendor.address }}">
+        </div>
+    </div>
+    <h3>Bank Details</h3>
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="bank_name">Bank Name</label>
+            <input type="text" name="bank_name" id="bank_name" value="{{ vendor.bank_name }}">
+        </div>
+        <div class="form-group">
+            <label for="account_no">Account No.</label>
+            <input type="text" name="account_no" id="account_no" value="{{ vendor.account_no }}">
+        </div>
+        <div class="form-group">
+            <label for="branch">Branch</label>
+            <input type="text" name="branch" id="branch" value="{{ vendor.branch }}">
+        </div>
+        <div class="form-group">
+            <label for="ifsc">IFSC Code</label>
+            <input type="text" name="ifsc" id="ifsc" value="{{ vendor.ifsc }}">
+        </div>
+    </div>
+    <button type="submit" class="btn">Update Vendor</button>
+    <a href="{{ url_for('manage_vendors') }}" class="btn-secondary">Cancel</a>
+</form>
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    .btn-secondary {
+        display: inline-block;
+        background-color: #6c757d;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        margin-left: 1rem;
+    }
+</style>
+{% endblock %}

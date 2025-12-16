@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Muster Roll - {{ data.mr_no }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Devanagari', sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .controls { margin-bottom: 20px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+        .btn { background-color: #0d6efd; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; text-decoration: none; }
+        .page { background: #E7FCE2; width: 297mm; min-height: 210mm; padding: 15mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); font-size: 9pt; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { border: 1px solid #111; padding: 4px; font-size: 8pt; vertical-align: top; }
+        .header-main { display: flex; justify-content: space-between; align-items: flex-start; }
+        .header-text { text-align: center; flex-grow: 1; }
+        .top-details-container {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #111;
+            border-bottom: 1px solid #111;
+            padding: 5px 0;
+        }
+        .top-details-container > .col {
+            width: 33%;
+            padding: 0 5px;
+        }
+        .work-details { padding: 5px; border-bottom: 1px solid #111; }
+        .main-table th { font-weight: bold; text-align: center; }
+        .bottom-section { display: flex; justify-content: space-between; margin-top: 5px; }
+        .materials-table-container { width: 60%; }
+        .evaluation-container { width: 38%; border: 1px solid #111; text-align: center; padding-top: 2rem;}
+        .signatures { display: flex; justify-content: space-around; margin-top: 1.5rem; padding-top: 4rem; }
+        p { margin: 2px 0; }
+        @media print {
+            body { background-color: white; padding: 0; }
+            .controls { display: none; }
+            .page { margin: 0; padding: 10mm; box-shadow: none; border: none; width: 100%; min-height: auto; }
+            table, p, div { font-size: 8pt; }
+            td, th { font-size: 7pt; padding: 3px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="window.print()" class="btn">🖨️ Print Muster Roll</button>
+        <a href="{{ url_for('generate_muster_roll') }}" class="btn">Back to Form</a>
+    </div>
+
+    <div class="page">
+        <div class="header-main">
+            <div class="header-text">
+                <p style="font-size: 12pt;"><b>राष्ट्रीय ग्रामीण रोजगार गारंटी अधिनियम</b></p>
+                <p style="font-size: 12pt;"><b>मस्टर रोल</b> (कुशल / अर्द्ध कुशल श्रमिक हेतु)</p>
+            </div>
+            <div>
+                <img src="https://nregade4.nic.in/Netnrega/images/nregalogo.jpg" width="70" height="70" alt="NREGA Logo">
+            </div>
+        </div>
+
+        <div class="top-details-container">
+            <div class="col">
+                <p><b>राज्य:</b> {{ data.state }}</p>
+                <p><b>वित्तीय साल:</b> {{ data.financial_year }}</p>
+            </div>
+            <div class="col">
+                <p><b>मस्टर रोल संख्या :</b> {{ data.mr_no }}</p>
+                <p><b>जनपद:</b> {{ data.district }}</p>
+            </div>
+            <div class="col">
+                <p><b>मस्टर रोल मुद्रण की दिनांक :</b> {{ data.print_date }}</p>
+                <p><b>विकास खंड:</b> {{ data.block }}</p>
+                <p><b>पंचायत:</b> {{ data.panchayat }}</p>
+            </div>
+        </div>
+
+        <div class="work-details">
+            <div style="display: flex; justify-content: space-between;">
+                <div style="width: 50%;"><b>कार्य का नाम :</b> {{ data.work_name }}</div>
+                <div style="width: 50%; text-align: right;">
+                    <div><b>तकनीकी स्वीकृति संख्या और दिनांक:</b> {{ data.tech_sanction_no }}({{ data.tech_sanction_date }}) &nbsp;&nbsp; <b>वित्तीय स्वीकृति संख्या और दिनांक:</b> {{ data.fin_sanction_no }}({{ data.fin_sanction_date }})</div>
+                    <div><b>कार्य-संहित :</b> {{ data.work_code }}</div>
+                </div>
+            </div>
+             <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <div style="width: 50%;"><b>कार्य-निष्पादन एजेंसी :</b> {{ data.agency }}</div>
+                <div style="width: 50%;"><b>मेट का नाम :</b> {{ data.mate_name }}</div>
+                <div style="width: 25%;"><b>तारीख से:</b> {{ data.start_date }} &nbsp;<b>को:</b> {{ data.end_date }}</div>
+            </div>
+        </div>
+        
+        <table class="main-table" style="margin-top: 5px;">
+             <thead>
+                 <tr>
+                    <th rowspan="2" style="width: 2%;">क्र.सं.</th> <th rowspan="2">अकुशल / कुशल मजदूर के नाम</th> <th rowspan="2">पिता/पति का नाम</th> <th rowspan="2">Age</th> <th rowspan="2">गांव</th> <th colspan="3">श्रमिक वर्गीकरण</th> <th rowspan="2">खाता कंमांक</th> <th rowspan="2">श्रमिक का प्रकार</th> <th rowspan="2">आवेदक के हस्ताक्षर/अंगूठे का निशान</th> <th colspan="7">कुल हाजिरी</th> <th rowspan="2">कुल हाजिरी</th> <th rowspan="2">प्रतिदन मजदूर</th> <th rowspan="2">माप के अनुसार देय राशि</th>
+                </tr>
+                <tr>
+                    <th>Caste</th><th>Gender</th><th>Whether BPL Family</th> <th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(4) %}
+                <tr style="height: 25px;">
+                    <td style="text-align: center;">{{ loop.index }}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="9" rowspan="4">
+                        <p style="text-align: center;"><b>क.अ./त.सहा.द्वारा भरा जायेगा</b></p>
+                        (ए)क.अ./त.सहा. के अनुसार पखवाड़े में करवाये गए समस्त कार्य की कुल राशि=.......................... (रूपये में)
+                        <p style="text-align: center;"><b>माप बुक विवरण</b></p>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+                            <span>म॰ब॰न०....................</span>
+                            <span>पृष्ठ संख्या..................</span>
+                            <span>माप की तारीख.....................(dd/mm/yyyy)</span>
+                        </div>
+                        <p style="text-align: right; padding-top: 20px;">क.अ./त.सहा. के हस्ताक्षर</p>
+                    </td>
+                    <td colspan="2" style="text-align: right;">कुल हाजिरी</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>कुल</td><td></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="text-align: right;">क.सं. 1 पर अंकित श्रमिक के हस्ताक्षर</td>
+                    <td colspan="7" rowspan="3" style="text-align:center; vertical-align: middle; font-size: 10pt;"><b>पूरा काम पूरा दाम</b></td>
+                </tr>
+                 <tr><td colspan="2" style="text-align: right;">मस्टर रोल निरीक्षणकर्ता के दिनांकित हस्ताक्षर</td></tr>
+                 <tr><td colspan="2" style="text-align: right;">मस्टर रोल निरीक्षणकर्ता का नाम और पदनाम</td></tr>
+            </tbody>
+        </table>
+
+        <div class="bottom-section">
+            <div class="materials-table-container">
+                <table>
+                    <thead>
+                        <tr><td colspan="5" style="text-align: center;">पखवाड़े के दौरान प्राप्त की गई सामग्री के विवरण</td><td colspan="3" style="text-align: center;">उपयोग में ली गई सामग्री</td></tr>
+                        <tr><th>क्र.सं.</th><th>दिनॉंक(dd/mm/yyyy)</th><th>Name Of Material</th><th>Unit</th><th>Quantity</th><th>Name Of Material</th><th>Quantity</th><th>Amount</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(5) %}
+                        <tr style="height: 25px;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="evaluation-container">
+                <b>मूल्यांकन जाँच एवं उपयोगिता प्रमाण पत्र</b>
+            </div>
+        </div>
+        <div style="text-align: right; margin-top: 5rem; padding-right: 5rem;">क.अ./त.सहा. के हस्ताक्षर</div>
+        <div class="signatures">
+            <div>मेट के हस्ताक्षर</div>
+            <div>ग्राम रोजगार सहायक</div>
+            <div>कनिष्ठ अभियंता</div>
+        </div>
+    </div>
+</body>
+</html>

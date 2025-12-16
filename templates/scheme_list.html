@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Scheme List{% endblock %}
+
+{% block header_title %}Scheme List (WC Gen){% endblock %}
+
+{% block content %}
+    <div class="note-box">
+        <p><strong>Pro Tip:</strong> After filling the first row, click or tab into a cell in the next row to automatically copy the data from the cell directly above it. The <strong>priority</strong> number will automatically increase by one.</p>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 1.5rem; max-width: 400px;">
+        <label for="panchayat">Panchayat Name:</label>
+        <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori (file naam ke liye)" required>
+    </div>
+    <div class="table-controls">
+        <button id="scroll-left-btn" class="btn secondary scroll-btn" title="Scroll Left">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button id="scroll-right-btn" class="btn secondary scroll-btn" title="Scroll Right">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <div id="scroll-container" class="table-wrapper-both-scroll">
+        <table id="work-code-table">
+            <thead>
+                <tr>
+                    <th>priority</th>
+                    <th class="col-work-name">work_name</th>
+                    <th>khata_no</th>
+                    <th>plot_no</th>
+                    <th>village_name</th>
+                    <th>total_plants</th>
+                    <th>covered_area</th>
+                    <th>area_plantation</th>
+                    <th>total_saplings</th>
+                    <th class="col-job-card">job_card</th>
+                    <th>beneficiary_type_for_if_edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(10) %}
+                <tr>
+                    <td><input type="text" value=""></td>
+                    <td class="col-work-name"><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                    <td class="col-job-card"><input type="text" value=""></td>
+                    <td><input type="text" value=""></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> 
+    <div class="action-buttons">
+        <button id="add-row-btn" class="btn secondary">Add Row</button>
+        <button id="download-csv" class="btn">Download CSV</button>
+        <button id="save-cloud-btn" type="button" class="btn secondary">Save to Cloud</button>
+    </div>
+
+
+<script>
+    // --- Existing Scripts (CSV Download, Add Row, Auto-fill) ---
+    document.getElementById('download-csv').addEventListener('click', function() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        const table = document.getElementById('work-code-table');
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        csvContent += headers.join(',') + '\r\n';
+        const rows = table.querySelectorAll('tbody tr');
+        let hasData = false;
+        rows.forEach(row => {
+            const rowInputs = row.querySelectorAll('input');
+            const rowData = Array.from(rowInputs).map(input => `"${input.value.replace(/"/g, '""')}"`);
+            if (Array.from(rowInputs).some(input => input.value.trim() !== '')) {
+                csvContent += rowData.join(',') + '\r\n';
+                hasData = true;
+            }
+        });
+        if (!hasData) { alert("Please enter some data before downloading."); return; }
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', 'work_code_data.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+    const tableBody = document.getElementById('work-code-table').querySelector('tbody');
+    document.getElementById('add-row-btn').addEventListener('click', function() {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td><input type="text" value=""></td>
+            <td class="col-work-name"><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+            <td class="col-job-card"><input type="text" value=""></td>
+            <td><input type="text" value=""></td>
+        `;
+        tableBody.appendChild(newRow);
+        // Re-check button states after adding row
+        setTimeout(updateButtonStates, 100);
+    });
+
+    tableBody.addEventListener('focusin', function(e) {
+        if (e.target && e.target.tagName === 'INPUT') {
+            const currentInput = e.target;
+            if (currentInput.value.trim() !== '') return;
+            const currentRow = currentInput.closest('tr');
+            const previousRow = currentRow.previousElementSibling;
+            if (previousRow) {
+                const currentCell = currentInput.closest('td');
+                const cellIndex = Array.from(currentRow.children).indexOf(currentCell);
+                const inputAbove = previousRow.children[cellIndex]?.querySelector('input');
+                if (inputAbove) {
+                    if (cellIndex === 0) {
+                        const numberAbove = parseInt(inputAbove.value, 10);
+                        currentInput.value = !isNaN(numberAbove) ? numberAbove + 1 : inputAbove.value;
+                    } else {
+                        currentInput.value = inputAbove.value;
+                    }
+                }
+            }
+        }
+    });
+
+    // --- UPDATED SCROLL BUTTON SCRIPT ---
+    const scrollContainer = document.getElementById('scroll-container'); // ID CHANGE HUA HAI
+    const scrollLeftBtn = document.getElementById('scroll-left-btn');
+    const scrollRightBtn = document.getElementById('scroll-right-btn');
+    
+    function updateButtonStates() {
+        if (!scrollContainer || !scrollLeftBtn || !scrollRightBtn) return;
+        
+        // Ab calculation hamesha sahi hogi
+        const maxScrollLeft = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+        
+        scrollLeftBtn.disabled = scrollContainer.scrollLeft <= 0;
+        scrollRightBtn.disabled = scrollContainer.scrollLeft >= maxScrollLeft - 1;
+    }
+
+    if (scrollContainer && scrollLeftBtn && scrollRightBtn) {
+        const scrollAmount = 300; 
+
+        scrollLeftBtn.addEventListener('click', function() {
+            scrollContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+
+        scrollRightBtn.addEventListener('click', function() {
+            scrollContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+
+        // Update buttons whenever the user scrolls
+        scrollContainer.addEventListener('scroll', updateButtonStates);
+        
+        // Check states on load and resize
+        window.addEventListener('resize', updateButtonStates);
+        
+        // Initial check
+        // Need a longer timeout to wait for table to render properly
+        setTimeout(updateButtonStates, 300); 
+    }
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Make the event listener async
+    document.getElementById('save-cloud-btn').addEventListener('click', async function() {
+        const contentProvider = function() {
+            let csvContent = "";
+            const table = document.getElementById('work-code-table');
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            csvContent += headers.join(',') + '\r\n';
+            const rows = table.querySelectorAll('tbody tr');
+            let hasData = false;
+            rows.forEach(row => {
+                const rowInputs = row.querySelectorAll('input');
+                const rowData = Array.from(rowInputs).map(input => `"${input.value.replace(/"/g, '""')}"`);
+                if (Array.from(rowInputs).some(input => input.value.trim() !== '')) {
+                    csvContent += rowData.join(',') + '\r\n';
+                    hasData = true;
+                }
+            });
+            if (!hasData) { 
+                alert("Please enter some data before saving.");
+                return null; 
+            }
+            return csvContent;
+        };
+        
+        // --- SCRIPT UPDATE: Read panchayat name ---
+        const panchayat = document.getElementById('panchayat').value.trim();
+        if (!panchayat) {
+            alert('Please enter a Panchayat Name to save the file.');
+            return;
+        }
+        // --- FILENAME UPDATED ---
+        const baseFilename = panchayat + '_scheme_list_data.csv';
+        // --- END UPDATE ---
+    
+        // Await the refactored handler
+        await handleCloudSaveClick(contentProvider, 'Uploads/workcode_generator', baseFilename, this);
+    });
+    </script>
+{% endblock %}
