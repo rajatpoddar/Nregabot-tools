@@ -374,6 +374,79 @@ def contractor_list():
     """Renders the new tool page for filtering applicant lists."""
     return render_template('contractor_list.html')
 
+@app.route('/scheme-extractor', methods=['GET', 'POST'])
+def scheme_extractor():
+    if request.method == 'POST':
+        raw_text = request.form.get('raw_text', '')
+        panchayat_name = request.form.get('panchayat', 'schemes').strip() # Panchayat name
+        
+        if not raw_text:
+            flash("No text provided", "error")
+            return redirect(url_for('scheme_extractor'))
+
+        # Regex to clean name and extract code
+        pattern = re.compile(r'(?:^\d+\s*|\n\d+\s*)?([^\n\r]*?)\s*(\(34\d{8}\/[A-Z]+\/\d+\))')
+        matches = pattern.findall(raw_text)
+        
+        if not matches:
+            flash("No valid schemes found in text.", "error")
+            return redirect(url_for('scheme_extractor'))
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Scheme Name', 'Work Code'])
+        
+        count = 0
+        for name, code in matches:
+            clean_name = re.sub(r'^\d+\s+', '', name.strip())
+            clean_code = code.replace('(', '').replace(')', '').strip()
+            writer.writerow([clean_name, clean_code])
+            count += 1
+
+        output.seek(0)
+        
+        # New Filename Format: panchayat_schemes_count.csv
+        filename = f"{panchayat_name}_schemes_{count}.csv"
+        
+        return Response(
+            output,
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment;filename={filename}"}
+        )
+
+    return render_template('scheme_extractor.html')
+
+# --- UPDATED: Demand Tool ---
+@app.route('/demand-tool', methods=['GET', 'POST'])
+def demand_tool():
+    if request.method == 'POST':
+        data = {
+            'panchayat': request.form.get('panchayat', ''),
+            'scheme_full_name': request.form.get('scheme_full_name', ''), # Full string from CSV
+            'work_code': request.form.get('work_code', ''),
+            'date': datetime.now().strftime('%d/%m/%Y'),
+            'labourers': []
+        }
+        
+        # Collect dynamic labour rows
+        # We assume the form sends rows with index 0 to N
+        labour_indices = request.form.getlist('labour_index')
+        counter = 1
+        for idx in labour_indices:
+            name = request.form.get(f'labour_name_{idx}')
+            card = request.form.get(f'job_card_{idx}')
+            if name or card:
+                data['labourers'].append({
+                    'sr': counter,
+                    'name': name,
+                    'card': card
+                })
+                counter += 1
+        
+        return render_template('demand_print.html', data=data)
+        
+    return render_template('demand_form.html')
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)

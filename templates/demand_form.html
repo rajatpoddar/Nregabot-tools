@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Generate Demand{% endblock %}
+
+{% block header_title %}Demand Generator{% endblock %}
+
+{% block content %}
+<style>
+    .upload-section {
+        margin-bottom: 2rem;
+        background: var(--light-card-bg);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid var(--light-border);
+        box-shadow: var(--light-shadow);
+    }
+    body.dark-mode .upload-section {
+        background: var(--dark-card-bg);
+        border-color: var(--dark-border);
+    }
+    .stats-panel {
+        display: flex; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.9rem;
+        padding: 0.5rem; background: rgba(0, 123, 255, 0.1); border-radius: 4px;
+    }
+    .stat-item strong { color: var(--primary-color); }
+</style>
+
+<div class="note-box">
+    <p><strong>Instructions:</strong> Upload 'Scheme List' CSV (generated from Extractor) and 'Labour List' CSV.</p>
+</div>
+
+<div class="upload-section">
+    <div class="form-grid">
+        <div class="form-group">
+            <label>1. Select Scheme List (CSV):</label>
+            <input type="file" id="scheme_csv" accept=".csv" class="file-input-hidden">
+            <div class="file-input-container">
+                <label for="scheme_csv" class="btn secondary"><i class="fa-solid fa-file-csv"></i> Upload Schemes</label>
+                <span id="scheme-file-name" class="file-name-display">Optional</span>
+            </div>
+            
+            <div id="scheme-control-area" style="display: none; margin-top: 10px;">
+                <input type="text" id="scheme_filter" placeholder="Search by name or code (e.g. 7787)..." style="width: 100%; margin-bottom: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <select id="scheme_select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="">-- Select Scheme --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>2. Select Labour List (CSV):</label>
+            <input type="file" id="labour_csv" accept=".csv" class="file-input-hidden">
+            <div class="file-input-container">
+                <label for="labour_csv" class="btn secondary"><i class="fa-solid fa-users"></i> Upload Labours</label>
+                <span id="labour-file-name" class="file-name-display">Optional</span>
+            </div>
+            
+            <div id="labour-stats" class="stats-panel" style="display: none; margin-top: 10px;">
+                <span class="stat-item">Total: <strong id="lbl-total">0</strong></span>
+                <span class="stat-item">Used: <strong id="lbl-used">0</strong></span>
+                <span class="stat-item">Remaining: <strong id="lbl-remain" style="color: var(--success-color);">0</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('demand_tool') }}" id="demand-form" target="_blank">
+    
+    <div class="form-grid" style="align-items: end;">
+        <div class="form-group">
+            <label for="panchayat">Panchayat Name</label>
+            <input type="text" name="panchayat" id="panchayat" placeholder="e.g., Palojori" required>
+        </div>
+        <div class="form-group">
+            <label for="labour_count" style="margin-bottom: 0.5rem; display: block;">Add Labours:</label>
+            
+            <div style="display: flex; align-items: stretch; height: 45px;"> 
+                
+                <button type="button" class="btn secondary" onclick="adjustCount(-1)" 
+                    style="border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 0 1.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                
+                <input type="number" id="labour_count" value="10" min="1" max="20" 
+                    style="width: 80px; text-align: center; border-radius: 0; border-left: 1px solid rgba(0,0,0,0.1); border-right: 1px solid rgba(0,0,0,0.1); -moz-appearance: textfield; font-size: 1.2rem; font-weight: 600; height: 100%; padding: 0;">
+                
+                <button type="button" class="btn secondary" onclick="adjustCount(1)" 
+                    style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 1.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                
+                <button type="button" id="btn-add-labours" class="btn secondary" 
+                    style="margin-left: 15px; height: 100%; display: flex; align-items: center;">
+                    Add Batch
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <hr style="margin: 1.5rem 0;">
+
+    <input type="hidden" name="scheme_full_name" id="hidden_scheme_name">
+    <input type="hidden" name="work_code" id="hidden_work_code">
+
+    <h3 id="form-preview-title">Form Preview (0 Labours)</h3>
+    
+    <div id="scheme-preview-text" style="padding: 15px; margin-bottom: 20px; display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: start;">
+        <div>
+            <div style="font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Selected Scheme</div>
+            <div id="preview_scheme_name" style="font-weight: 600; font-size: 1.1rem; margin-top: 5px;">None</div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Work Code</div>
+            <div id="preview_work_code" style="font-family: monospace; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 4px; margin-top: 5px;">None</div>
+        </div>
+    </div>
+</div>
+
+    <div class="table-wrapper-both-scroll">
+        <table id="labour-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">Sr.</th>
+                    <th>Job Card No.</th>
+                    <th>Labour Name</th>
+                    <th style="width: 50px;">Action</th>
+                </tr>
+            </thead>
+            <tbody id="labour-tbody">
+                </tbody>
+        </table>
+    </div>
+
+    <button type="submit" class="btn" style="margin-top: 1rem;">Generate Print View</button>
+    <button type="button" id="btn-reset-labours" class="btn secondary" style="margin-top: 1rem; float: right;">Reset Queue</button>
+</form>
+
+<script>
+    let schemes = [];
+    let allLabours = [];
+    let currentLabourIndex = 0;
+
+    // --- FIXED SCHEME CSV PARSER ---
+    document.getElementById('scheme_csv').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('scheme-file-name').textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const text = event.target.result;
+            const rows = text.split(/\r?\n/);
+            schemes = [];
+            
+            rows.forEach((row, index) => {
+                if (index === 0 || !row.trim()) return;
+                
+                // --- FIX: Proper CSV Split (Comma only, ignoring quotes) ---
+                // This regex splits by comma ONLY if it's not inside quotes
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                
+                if (cols.length >= 2) {
+                    // Column 0 is Name, Column 1 is Code
+                    schemes.push({
+                        name: cols[0], 
+                        code: cols[1]
+                    });
+                }
+            });
+            
+            document.getElementById('scheme-control-area').style.display = 'block';
+            populateSchemeDropdown(schemes);
+        };
+        reader.readAsText(file);
+    });
+
+    // Filter
+    document.getElementById('scheme_filter').addEventListener('input', function(e) {
+        const val = e.target.value.toLowerCase();
+        const filtered = schemes.filter(s => s.code.toLowerCase().includes(val) || s.name.toLowerCase().includes(val));
+        populateSchemeDropdown(filtered);
+    });
+
+    function populateSchemeDropdown(list) {
+        const select = document.getElementById('scheme_select');
+        select.innerHTML = '<option value="">-- Select Scheme --</option>';
+        list.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = JSON.stringify(s);
+            // Dropdown mein thoda chhota dikhayein, par value poori rahegi
+            opt.textContent = `${s.name.substring(0, 80)}... [${s.code}]`;
+            select.appendChild(opt);
+        });
+    }
+
+    document.getElementById('scheme_select').addEventListener('change', function() {
+        if (!this.value) {
+             document.getElementById('scheme-preview-text').style.display = 'none';
+             return;
+        }
+        const data = JSON.parse(this.value);
+        
+        // Hidden inputs update (yeh server pe jayenge)
+        document.getElementById('hidden_scheme_name').value = data.name;
+        document.getElementById('hidden_work_code').value = data.code;
+        
+        // UI Preview update
+        document.getElementById('preview_scheme_name').textContent = data.name;
+        document.getElementById('preview_work_code').textContent = data.code;
+        document.getElementById('scheme-preview-text').style.display = 'block';
+    });
+
+    // --- Labour Logic (Same as before) ---
+    document.getElementById('labour_csv').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('labour-file-name').textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const text = event.target.result;
+            const rows = text.split(/\r?\n/);
+            allLabours = [];
+            rows.forEach((row, index) => {
+                if (index === 0 || !row.trim()) return;
+                const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
+                if (cols.length >= 2) allLabours.push({ name: cols[0], card: cols[1] });
+            });
+            currentLabourIndex = 0;
+            updateStats();
+            document.getElementById('labour-stats').style.display = 'flex';
+        };
+        reader.readAsText(file);
+    });
+
+    function updateStats() {
+        document.getElementById('lbl-total').textContent = allLabours.length;
+        document.getElementById('lbl-used').textContent = currentLabourIndex;
+        document.getElementById('lbl-remain').textContent = allLabours.length - currentLabourIndex;
+    }
+
+    document.getElementById('btn-add-labours').addEventListener('click', function() {
+        if (allLabours.length === 0) { alert("Please upload a labour list first."); return; }
+        const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
+        const remaining = allLabours.length - currentLabourIndex;
+        const actualAdd = Math.min(countToAdd, remaining);
+
+        if (actualAdd <= 0) { alert("No more labourers remaining!"); return; }
+
+        const tbody = document.getElementById('labour-tbody');
+        tbody.innerHTML = ''; 
+
+        for (let i = 0; i < actualAdd; i++) {
+            const labour = allLabours[currentLabourIndex + i];
+            const rowIdx = i + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${rowIdx} <input type="hidden" name="labour_index" value="${rowIdx}"></td>
+                <td><input type="text" name="job_card_${rowIdx}" value="${labour.card}" readonly style="border:none; width:100%;"></td>
+                <td><input type="text" name="labour_name_${rowIdx}" value="${labour.name}" readonly style="border:none; width:100%;"></td>
+                <td><button type="button" class="btn secondary" style="padding: 2px 8px;" onclick="this.closest('tr').remove()">X</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+        currentLabourIndex += actualAdd;
+        updateStats();
+        document.getElementById('form-preview-title').textContent = `Form Preview (${actualAdd} Labours)`;
+    });
+    
+    document.getElementById('btn-reset-labours').addEventListener('click', function() {
+        if(confirm("Reset labour queue?")) {
+            currentLabourIndex = 0;
+            document.getElementById('labour-tbody').innerHTML = '';
+            updateStats();
+        }
+    });
+
+    function adjustCount(change) {
+        const input = document.getElementById('labour_count');
+        let val = parseInt(input.value) || 0;
+        val += change;
+        
+        // Limits (Min 1, Max 20)
+        if (val < 1) val = 1;
+        if (val > 20) val = 20;
+        
+        input.value = val;
+    }
+</script>
+<style>
+    /* Chrome, Safari, Edge, Opera ke liye arrows hatana */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    
+    /* Dark mode border adjustment */
+    body.dark-mode #labour_count {
+        border-left-color: #444 !important;
+        border-right-color: #444 !important;
+        background-color: #2b2b2b;
+        color: white;
+    }
+</style>
+{% endblock %}

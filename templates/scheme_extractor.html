@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Scheme Extractor{% endblock %}
+{% block header_title %}Scheme List Extractor{% endblock %}
+
+{% block content %}
+<div class="note-box">
+    <p><strong>Note:</strong> Paste the raw text from the NREGA report here. The tool will clean it and give you a CSV for the Demand Generator.</p>
+</div>
+
+<form method="post" action="{{ url_for('scheme_extractor') }}">
+    
+    <div class="form-group" style="max-width: 400px;">
+        <label for="panchayat">Panchayat Name (for filename):</label>
+        <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori" required>
+    </div>
+
+    <div class="form-group">
+        <label for="raw_text">Paste Raw Report Text:</label>
+        <textarea name="raw_text" id="raw_text" rows="15" placeholder="Example: 1कसरायडीह ग्राम में... (3422003014/IF/...)..." style="font-family: monospace;"></textarea>
+    </div>
+    
+    <div class="action-buttons">
+        <button type="submit" class="btn">Extract & Download CSV</button>
+    </div>
+</form>
+{% endblock %}

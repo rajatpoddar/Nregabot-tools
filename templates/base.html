@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
 </head>
+
 <body>
 
     <header class="admin-header">
@@ -23,35 +25,50 @@
                     Nrega Bot- Tools
                 </a>
             </div>
-            
+
             <h1 class="header-title">
                 {% block header_title %}{% endblock %}
                 {% block header_extra %}{% endblock %}
             </h1>
-            
+
             <div class="header-right">
-                </div>
+            </div>
         </div>
     </header>
 
     <div class="page-wrapper">
-        
+
         <aside id="sidebar">
             <nav class="sidebar-nav">
-                
+
                 <span class="sidebar-category">Demand</span>
-                <a href="{{ url_for('allocation_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'allocation_list' else '' }}">
+                <a href="{{ url_for('allocation_list') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'allocation_list' else '' }}">
                     <i class="fa-solid fa-wand-magic-sparkles fa-fw"></i><span>Allocation List</span>
                 </a>
-                <a href="{{ url_for('applicant_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'applicant_list' else '' }}">
+                <a href="{{ url_for('applicant_list') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'applicant_list' else '' }}">
                     <i class="fa-solid fa-address-card fa-fw"></i><span>Applicant List</span>
                 </a>
-                <a href="{{ url_for('contractor_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'contractor_list' else '' }}">
+                <a href="{{ url_for('contractor_list') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'contractor_list' else '' }}">
                     <i class="fa-solid fa-list-check fa-fw"></i><span>Contractor List</span>
                 </a>
                 <span class="sidebar-category">WC Gen</span>
-                <a href="{{ url_for('scheme_list') }}" class="sidebar-link {{ 'active' if request.endpoint == 'scheme_list' else '' }}">
+                <a href="{{ url_for('scheme_list') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'scheme_list' else '' }}">
                     <i class="fa-solid fa-hashtag fa-fw"></i><span>Scheme List</span>
+                </a>
+                <span class="sidebar-category">Utilities</span>
+
+                <a href="{{ url_for('scheme_extractor') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'scheme_extractor' else '' }}">
+                    <i class="fa-solid fa-scissors fa-fw"></i><span>Scheme Extractor</span>
+                </a>
+
+                <a href="{{ url_for('demand_tool') }}"
+                    class="sidebar-link {{ 'active' if request.endpoint == 'demand_tool' else '' }}">
+                    <i class="fa-solid fa-file-invoice fa-fw"></i><span>Demand Gen</span>
                 </a>
                 <div class="sidebar-footer">
                     <div class="theme-switcher">
@@ -74,15 +91,15 @@
         <main class="content-wrapper">
             <div class="content-scroll-area">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-container">
-                            {% for category, message in messages %}
-                                <div class="flash {{ category }}">{{ message }}</div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 {% endwith %}
-        
+
                 <div class="card">
                     {% block content %}{% endblock %}
                 </div>
@@ -94,14 +111,21 @@
         <p>&copy; 2025 <a href="https://nregabot.com">Nrega Bot</a>. All Rights Reserved.</p>
     </footer>
 
-    <div id="cloud-file-picker-modal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; padding: 1rem;">
-        <div class="card" style="width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;" onclick="event.stopPropagation()">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--light-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+    <div id="cloud-file-picker-modal" class="modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; padding: 1rem;">
+        <div class="card"
+            style="width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;"
+            onclick="event.stopPropagation()">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--light-border); padding-bottom: 1rem; margin-bottom: 1rem;">
                 <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0;">Choose a File from Cloud</h2>
-                <button type="button" onclick="closeCloudFilePicker()" style="font-size: 2rem; background: none; border: none; cursor: pointer; color: var(--light-text); line-height: 1;">&times;</button>
+                <button type="button" onclick="closeCloudFilePicker()"
+                    style="font-size: 2rem; background: none; border: none; cursor: pointer; color: var(--light-text); line-height: 1;">&times;</button>
             </div>
-            <div id="cloud-file-list" style="overflow-y: auto; flex-grow: 1; min-height: 300px; border: 1px solid var(--light-border); border-radius: 8px;">
-                <p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading files...</p>
+            <div id="cloud-file-list"
+                style="overflow-y: auto; flex-grow: 1; min-height: 300px; border: 1px solid var(--light-border); border-radius: 8px;">
+                <p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i
+                        class="fa-solid fa-spinner fa-spin"></i> Loading files...</p>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
                 <button type="button" onclick="closeCloudFilePicker()" class="btn secondary">Cancel</button>
@@ -116,7 +140,7 @@
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const menu = document.querySelector('#mobile-menu'); // Old hamburger, reused variable
         const menuLinks = document.querySelector('.nav-links'); // Old links
-        
+
         function toggleSidebar() {
             sidebar.classList.toggle('is-active');
             backdrop.classList.toggle('is-active');
@@ -263,7 +287,7 @@
                 buttonElement.disabled = false;
                 return;
             }
-            
+
             // Create dynamic filename
             const now = new Date();
             const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
@@ -276,7 +300,7 @@
 
 
         // --- NEW: Cloud File PICKER/LOADER Script ---
-        
+
         // Yeh promise ke 'resolve' function ko store karega
         let cloudFilePickerResolver = null;
 
@@ -299,7 +323,7 @@
         async function loadFromCloud(relativePath) {
             const modal = document.getElementById('cloud-file-picker-modal');
             const fileListDiv = document.getElementById('cloud-file-list');
-            
+
             modal.style.display = 'flex';
             fileListDiv.innerHTML = '<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading files...</p>';
 
@@ -315,25 +339,25 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ path: relativePath })
                     });
-                    
+
                     if (!response.ok) {
                         const errData = await response.json();
                         throw new Error(errData.reason || 'Failed to fetch file list.');
                     }
-                    
+
                     const data = await response.json();
-                    
+
                     if (data.status === 'success') {
                         if (data.files.length === 0) {
                             fileListDiv.innerHTML = '<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);">Is location par koi files nahi mili.</p>';
                             return;
                         }
-                        
+
                         fileListDiv.innerHTML = ''; // Loading hatayein
                         const ul = document.createElement('ul');
                         ul.style.listStyle = 'none';
                         ul.style.padding = '0.5rem';
-                        
+
                         // Files ko list mein add karein
                         data.files.forEach(file => {
                             const li = document.createElement('li');
@@ -346,7 +370,7 @@
                             // Dynamic hover color based on theme
                             li.onmouseover = () => { li.style.backgroundColor = 'var(--light-bg)'; };
                             li.onmouseout = () => { li.style.backgroundColor = 'transparent'; };
-                            
+
                             li.innerHTML = `
                                 <div>
                                     <p style="font-weight: 500; color: var(--light-text);">${file.filename}</p>
@@ -358,7 +382,7 @@
                             ul.appendChild(li);
                         });
                         fileListDiv.appendChild(ul);
-                        
+
                     } else {
                         throw new Error(data.reason || 'Failed to list files.');
                     }
@@ -376,20 +400,20 @@
         async function handleFileSelect(fileId, filename) {
             const fileListDiv = document.getElementById('cloud-file-list');
             fileListDiv.innerHTML = `<p style="text-align: center; padding: 4rem 0; color: var(--secondary-color);"><i class="fa-solid fa-spinner fa-spin"></i> Loading file content for ${filename}...</p>`;
-            
+
             try {
                 const response = await fetch(`${SERVER_DOMAIN}/files/api/web/get-content/${fileId}`, {
                     method: 'GET',
                     credentials: 'include'
                 });
-                
+
                 if (!response.ok) {
                     const errData = await response.json();
                     throw new Error(errData.reason || 'Failed to get file content.');
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.status === 'success') {
                     if (cloudFilePickerResolver) {
                         // Promise ko file content ke saath resolve karein
@@ -403,10 +427,10 @@
                 } else {
                     throw new Error(data.reason || 'Failed to get content.');
                 }
-                
+
             } catch (err) {
-                 fileListDiv.innerHTML = `<p style="color: red; text-align: center; padding: 4rem 0;">Error: ${err.message}</p>`;
-                 if (cloudFilePickerResolver) {
+                fileListDiv.innerHTML = `<p style="color: red; text-align: center; padding: 4rem 0;">Error: ${err.message}</p>`;
+                if (cloudFilePickerResolver) {
                     cloudFilePickerResolver(null); // Error par null resolve karein
                     cloudFilePickerResolver = null;
                 }
@@ -415,7 +439,8 @@
         // --- END: Cloud File PICKER/LOADER Script ---
 
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
