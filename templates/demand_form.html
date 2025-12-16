@@ -4,135 +4,134 @@
 {% block header_title %}Demand Generator{% endblock %}
 
 {% block content %}
-<style>
-    .upload-section {
-        margin-bottom: 2rem;
-        background: var(--light-card-bg);
-        padding: 1.5rem;
-        border-radius: 8px;
-        border: 1px solid var(--light-border);
-        box-shadow: var(--light-shadow);
-    }
-    body.dark-mode .upload-section {
-        background: var(--dark-card-bg);
-        border-color: var(--dark-border);
-    }
-    .stats-panel {
-        display: flex; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.9rem;
-        padding: 0.5rem; background: rgba(0, 123, 255, 0.1); border-radius: 4px;
-    }
-    .stat-item strong { color: var(--primary-color); }
-</style>
-
-<div class="note-box">
-    <p><strong>Instructions:</strong> Upload 'Scheme List' CSV (generated from Extractor) and 'Labour List' CSV.</p>
-</div>
-
-<div class="upload-section">
-    <div class="form-grid">
-        <div class="form-group">
-            <label>1. Select Scheme List (CSV):</label>
-            <input type="file" id="scheme_csv" accept=".csv" class="file-input-hidden">
-            <div class="file-input-container">
-                <label for="scheme_csv" class="btn secondary"><i class="fa-solid fa-file-csv"></i> Upload Schemes</label>
-                <span id="scheme-file-name" class="file-name-display">Optional</span>
-            </div>
-            
-            <div id="scheme-control-area" style="display: none; margin-top: 10px;">
-                <input type="text" id="scheme_filter" placeholder="Search by name or code (e.g. 7787)..." style="width: 100%; margin-bottom: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                <select id="scheme_select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                    <option value="">-- Select Scheme --</option>
-                </select>
-            </div>
+<div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 mb-8 rounded-r-lg">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="fa-solid fa-file-invoice text-blue-600 dark:text-blue-400"></i>
         </div>
-
-        <div class="form-group">
-            <label>2. Select Labour List (CSV):</label>
-            <input type="file" id="labour_csv" accept=".csv" class="file-input-hidden">
-            <div class="file-input-container">
-                <label for="labour_csv" class="btn secondary"><i class="fa-solid fa-users"></i> Upload Labours</label>
-                <span id="labour-file-name" class="file-name-display">Optional</span>
-            </div>
-            
-            <div id="labour-stats" class="stats-panel" style="display: none; margin-top: 10px;">
-                <span class="stat-item">Total: <strong id="lbl-total">0</strong></span>
-                <span class="stat-item">Used: <strong id="lbl-used">0</strong></span>
-                <span class="stat-item">Remaining: <strong id="lbl-remain" style="color: var(--success-color);">0</strong></span>
-            </div>
+        <div class="ml-3">
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Instructions:</strong> Upload 'Scheme List' CSV (from Extractor) and 'Labour List' CSV. Then select a scheme and add labourers to generate print-ready demand forms.
+            </p>
         </div>
     </div>
 </div>
 
-<form method="post" action="{{ url_for('demand_tool') }}" id="demand-form" target="_blank">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
     
-    <div class="form-grid" style="align-items: end;">
-        <div class="form-group">
-            <label for="panchayat">Panchayat Name</label>
-            <input type="text" name="panchayat" id="panchayat" placeholder="e.g., Palojori" required>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">1. Select Scheme List (CSV)</label>
+        <div class="flex items-center gap-3">
+            <input type="file" id="scheme_csv" accept=".csv" class="hidden">
+            <label for="scheme_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <i class="fa-solid fa-file-csv mr-2 text-yellow-600"></i> Upload Schemes
+            </label>
+            <span id="scheme-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
         </div>
-        <div class="form-group">
-            <label for="labour_count" style="margin-bottom: 0.5rem; display: block;">Add Labours:</label>
-            
-            <div style="display: flex; align-items: stretch; height: 45px;"> 
-                
-                <button type="button" class="btn secondary" onclick="adjustCount(-1)" 
-                    style="border-top-right-radius: 0; border-bottom-right-radius: 0; padding: 0 1.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    <i class="fa-solid fa-minus"></i>
-                </button>
-                
-                <input type="number" id="labour_count" value="10" min="1" max="20" 
-                    style="width: 80px; text-align: center; border-radius: 0; border-left: 1px solid rgba(0,0,0,0.1); border-right: 1px solid rgba(0,0,0,0.1); -moz-appearance: textfield; font-size: 1.2rem; font-weight: 600; height: 100%; padding: 0;">
-                
-                <button type="button" class="btn secondary" onclick="adjustCount(1)" 
-                    style="border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 0 1.2rem; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-                
-                <button type="button" id="btn-add-labours" class="btn secondary" 
-                    style="margin-left: 15px; height: 100%; display: flex; align-items: center;">
-                    Add Batch
-                </button>
-            </div>
+
+        <div id="scheme-control-area" class="hidden mt-4 space-y-2 animate-fade-in">
+            <input type="text" id="scheme_filter" placeholder="Search scheme (code or name)..." 
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <select id="scheme_select" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
+                <option value="">-- Select Scheme --</option>
+            </select>
         </div>
     </div>
 
-    <hr style="margin: 1.5rem 0;">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List (CSV)</label>
+        <div class="flex items-center gap-3">
+            <input type="file" id="labour_csv" accept=".csv" class="hidden">
+            <label for="labour_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <i class="fa-solid fa-users mr-2 text-green-600"></i> Upload Labours
+            </label>
+            <span id="labour-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+        </div>
 
+        <div id="labour-stats" class="hidden mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between text-xs font-medium text-blue-800 dark:text-blue-200 animate-fade-in">
+            <span>Total: <strong id="lbl-total">0</strong></span>
+            <span>Used: <strong id="lbl-used">0</strong></span>
+            <span class="text-green-600 dark:text-green-400">Remaining: <strong id="lbl-remain">0</strong></span>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{{ url_for('demand_tool') }}" id="demand-form" target="_blank" class="space-y-6">
+    
     <input type="hidden" name="scheme_full_name" id="hidden_scheme_name">
     <input type="hidden" name="work_code" id="hidden_work_code">
 
-    <h3 id="form-preview-title">Form Preview (0 Labours)</h3>
-    
-    <div id="scheme-preview-text" style="padding: 15px; margin-bottom: 20px; display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: start;">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
         <div>
-            <div style="font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Selected Scheme</div>
-            <div id="preview_scheme_name" style="font-weight: 600; font-size: 1.1rem; margin-top: 5px;">None</div>
+            <label for="panchayat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Panchayat Name</label>
+            <input type="text" name="panchayat" id="panchayat" placeholder="e.g., Palojori" required
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm">
         </div>
-        <div style="text-align: right;">
-            <div style="font-size: 0.85rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px;">Work Code</div>
-            <div id="preview_work_code" style="font-family: monospace; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 4px; margin-top: 5px;">None</div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Labours (Batch Size)</label>
+            <div class="flex items-center">
+                <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mr-4">
+                    <button type="button" onclick="adjustCount(-1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                        <i class="fa-solid fa-minus text-xs"></i>
+                    </button>
+                    <input type="number" id="labour_count" value="10" min="1" max="20" class="w-12 text-center border-none focus:ring-0 p-0 text-gray-900 dark:text-white font-semibold bg-transparent">
+                    <button type="button" onclick="adjustCount(1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </button>
+                </div>
+                
+                <button type="button" id="btn-add-labours" class="flex-1 inline-flex justify-center items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors text-sm font-medium">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Add Batch
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-    <div class="table-wrapper-both-scroll">
-        <table id="labour-table">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">Sr.</th>
-                    <th>Job Card No.</th>
-                    <th>Labour Name</th>
-                    <th style="width: 50px;">Action</th>
-                </tr>
-            </thead>
-            <tbody id="labour-tbody">
-                </tbody>
-        </table>
+    <hr class="border-gray-200 dark:border-gray-700">
+
+    <div class="flex justify-between items-center">
+        <h3 id="form-preview-title" class="text-lg font-bold text-gray-800 dark:text-gray-100">Form Preview (0 Labours)</h3>
+        <button type="button" id="btn-reset-labours" class="text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
+            <i class="fa-solid fa-trash mr-1"></i> Reset Queue
+        </button>
     </div>
 
-    <button type="submit" class="btn" style="margin-top: 1rem;">Generate Print View</button>
-    <button type="button" id="btn-reset-labours" class="btn secondary" style="margin-top: 1rem; float: right;">Reset Queue</button>
+    <div id="scheme-preview-text" class="hidden bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded-r-lg">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                <div class="text-xs uppercase tracking-wider text-indigo-500 font-bold mb-1">Selected Scheme</div>
+                <div id="preview_scheme_name" class="font-medium text-gray-900 dark:text-gray-100 text-sm md:text-base">None</div>
+            </div>
+            <div class="md:text-right">
+                <div class="text-xs uppercase tracking-wider text-indigo-500 font-bold mb-1">Work Code</div>
+                <div id="preview_work_code" class="inline-block bg-indigo-100 dark:bg-indigo-800 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded text-xs font-mono font-bold">None</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
+        <div class="overflow-x-auto">
+            <table id="labour-table" class="min-w-full text-sm text-left">
+                <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium">
+                    <tr>
+                        <th class="px-4 py-3 w-16">Sr.</th>
+                        <th class="px-4 py-3">Job Card No.</th>
+                        <th class="px-4 py-3">Labour Name</th>
+                        <th class="px-4 py-3 w-16 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="labour-tbody" class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="pt-4">
+        <button type="submit" class="w-full md:w-auto inline-flex justify-center items-center px-8 py-3 bg-primary hover:bg-blue-700 text-white text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-print mr-2"></i> Generate Print View
+        </button>
+    </div>
 </form>
 
 <script>
@@ -140,7 +139,7 @@
     let allLabours = [];
     let currentLabourIndex = 0;
 
-    // --- FIXED SCHEME CSV PARSER ---
+    // --- SCHEME CSV PARSER ---
     document.getElementById('scheme_csv').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -154,27 +153,20 @@
             
             rows.forEach((row, index) => {
                 if (index === 0 || !row.trim()) return;
-                
-                // --- FIX: Proper CSV Split (Comma only, ignoring quotes) ---
-                // This regex splits by comma ONLY if it's not inside quotes
+                // Regex handles commas inside quotes
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-                
                 if (cols.length >= 2) {
-                    // Column 0 is Name, Column 1 is Code
-                    schemes.push({
-                        name: cols[0], 
-                        code: cols[1]
-                    });
+                    schemes.push({ name: cols[0], code: cols[1] });
                 }
             });
             
-            document.getElementById('scheme-control-area').style.display = 'block';
+            document.getElementById('scheme-control-area').classList.remove('hidden');
             populateSchemeDropdown(schemes);
         };
         reader.readAsText(file);
     });
 
-    // Filter
+    // Filter Logic
     document.getElementById('scheme_filter').addEventListener('input', function(e) {
         const val = e.target.value.toLowerCase();
         const filtered = schemes.filter(s => s.code.toLowerCase().includes(val) || s.name.toLowerCase().includes(val));
@@ -187,7 +179,6 @@
         list.forEach(s => {
             const opt = document.createElement('option');
             opt.value = JSON.stringify(s);
-            // Dropdown mein thoda chhota dikhayein, par value poori rahegi
             opt.textContent = `${s.name.substring(0, 80)}... [${s.code}]`;
             select.appendChild(opt);
         });
@@ -195,22 +186,18 @@
 
     document.getElementById('scheme_select').addEventListener('change', function() {
         if (!this.value) {
-             document.getElementById('scheme-preview-text').style.display = 'none';
+             document.getElementById('scheme-preview-text').classList.add('hidden');
              return;
         }
         const data = JSON.parse(this.value);
-        
-        // Hidden inputs update (yeh server pe jayenge)
         document.getElementById('hidden_scheme_name').value = data.name;
         document.getElementById('hidden_work_code').value = data.code;
-        
-        // UI Preview update
         document.getElementById('preview_scheme_name').textContent = data.name;
         document.getElementById('preview_work_code').textContent = data.code;
-        document.getElementById('scheme-preview-text').style.display = 'block';
+        document.getElementById('scheme-preview-text').classList.remove('hidden');
     });
 
-    // --- Labour Logic (Same as before) ---
+    // --- LABOUR CSV LOGIC ---
     document.getElementById('labour_csv').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -227,7 +214,7 @@
             });
             currentLabourIndex = 0;
             updateStats();
-            document.getElementById('labour-stats').style.display = 'flex';
+            document.getElementById('labour-stats').classList.remove('hidden');
         };
         reader.readAsText(file);
     });
@@ -253,11 +240,12 @@
             const labour = allLabours[currentLabourIndex + i];
             const rowIdx = i + 1;
             const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
             tr.innerHTML = `
-                <td>${rowIdx} <input type="hidden" name="labour_index" value="${rowIdx}"></td>
-                <td><input type="text" name="job_card_${rowIdx}" value="${labour.card}" readonly style="border:none; width:100%;"></td>
-                <td><input type="text" name="labour_name_${rowIdx}" value="${labour.name}" readonly style="border:none; width:100%;"></td>
-                <td><button type="button" class="btn secondary" style="padding: 2px 8px;" onclick="this.closest('tr').remove()">X</button></td>
+                <td class="px-4 py-3 text-gray-500">${rowIdx} <input type="hidden" name="labour_index" value="${rowIdx}"></td>
+                <td class="px-4 py-3"><input type="text" name="job_card_${rowIdx}" value="${labour.card}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
+                <td class="px-4 py-3"><input type="text" name="labour_name_${rowIdx}" value="${labour.name}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
+                <td class="px-4 py-3 text-center"><button type="button" class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove()"><i class="fa-solid fa-xmark"></i></button></td>
             `;
             tbody.appendChild(tr);
         }
@@ -271,6 +259,7 @@
             currentLabourIndex = 0;
             document.getElementById('labour-tbody').innerHTML = '';
             updateStats();
+            document.getElementById('form-preview-title').textContent = `Form Preview (0 Labours)`;
         }
     });
 
@@ -278,28 +267,18 @@
         const input = document.getElementById('labour_count');
         let val = parseInt(input.value) || 0;
         val += change;
-        
-        // Limits (Min 1, Max 20)
         if (val < 1) val = 1;
         if (val > 20) val = 20;
-        
         input.value = val;
     }
 </script>
+
 <style>
-    /* Chrome, Safari, Edge, Opera ke liye arrows hatana */
+    /* Remove number input arrows */
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
-    }
-    
-    /* Dark mode border adjustment */
-    body.dark-mode #labour_count {
-        border-left-color: #444 !important;
-        border-right-color: #444 !important;
-        background-color: #2b2b2b;
-        color: white;
     }
 </style>
 {% endblock %}

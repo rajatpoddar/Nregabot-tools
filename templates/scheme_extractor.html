@@ -3,24 +3,38 @@
 {% block header_title %}Scheme List Extractor{% endblock %}
 
 {% block content %}
-<div class="note-box">
-    <p><strong>Note:</strong> Paste the raw text from the NREGA report here. The tool will clean it and give you a CSV for the Demand Generator.</p>
+<div class="bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-400 p-4 mb-6 rounded-r-lg">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="fa-solid fa-scissors text-purple-600 dark:text-purple-400"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-purple-800 dark:text-purple-200">How to use</h3>
+            <p class="text-sm text-purple-700 dark:text-purple-300 mt-1">
+                Paste the raw text from the NREGA report here. The tool will clean it and give you a structured CSV for the Demand Generator.
+            </p>
+        </div>
+    </div>
 </div>
 
-<form method="post" action="{{ url_for('scheme_extractor') }}">
+<form method="post" action="{{ url_for('scheme_extractor') }}" class="space-y-6">
     
-    <div class="form-group" style="max-width: 400px;">
-        <label for="panchayat">Panchayat Name (for filename):</label>
-        <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori" required>
+    <div>
+        <label for="panchayat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Panchayat Name (for filename)</label>
+        <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori" required
+            class="w-full md:w-1/3 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm">
     </div>
 
-    <div class="form-group">
-        <label for="raw_text">Paste Raw Report Text:</label>
-        <textarea name="raw_text" id="raw_text" rows="15" placeholder="Example: 1कसरायडीह ग्राम में... (3422003014/IF/...)..." style="font-family: monospace;"></textarea>
+    <div>
+        <label for="raw_text" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Paste Raw Report Text</label>
+        <textarea name="raw_text" id="raw_text" rows="15" placeholder="Example: 1कसरायडीह ग्राम में... (3422003014/IF/...)..." 
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-xs leading-relaxed focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm resize-y"></textarea>
     </div>
     
-    <div class="action-buttons">
-        <button type="submit" class="btn">Extract & Download CSV</button>
+    <div class="pt-2">
+        <button type="submit" class="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-file-csv mr-2"></i> Extract & Download CSV
+        </button>
     </div>
 </form>
 {% endblock %}

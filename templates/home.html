@@ -5,42 +5,120 @@
 {% block header_title %}Welcome to Nrega Bot Tools{% endblock %}
 
 {% block content %}
-    <h2>Overview</h2>
-    <p>Yeh tools aapke Nrega Bot Desktop Application ke liye zaroori CSV files ko tezi se generate karne mein madad karte hain.</p>
-    <hr>
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-3 text-gray-800 dark:text-gray-100">Overview</h2>
+        <p class="text-gray-600 dark:text-gray-300 leading-relaxed text-lg">
+            Manage your NREGA automation workflows efficiently. Extract data, generate demand forms, and manage contractor lists with these utilities.
+        </p>
+    </div>
+    
+    <hr class="my-8 border-gray-200 dark:border-gray-700">
 
-    <h3>Demand Automation Tools</h3>
-    
-    <h4><i class="fa-solid fa-address-card fa-fw"></i> Applicant List</h4>
-    <p>
-        NREGA portal se save kiye gaye 'Application Register' HTML file ko process karta hai.
-        Yeh tool uss file se sabhi <strong>Applicant Names</strong> aur <strong>Job Card Numbers</strong> ko nikaal kar ek saaf CSV file banata hai.
-    </p>
-    <p><strong>Use:</strong> Yeh CSV file aapke Desktop App mein <strong>Demand Tab</strong> ke liye primary input hai.</p>
-    <a href="{{ url_for('applicant_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
-    
-    <h4 style="margin-top: 2.5rem;"><i class="fa-solid fa-list-check fa-fw"></i> Contractor List</h4>
-    <p>
-        "Applicant List" se banayi gayi CSV file ko upload karke use filter karne mein madad karta hai.
-        Aap poori list mein se apne labourers ko (naam ya job card se) <strong>search karke select</strong> kar sakte hain.
-    </p>
-    <p><strong>Use:</strong> Yeh tool contractors ko apni team ki ek chhoti, manageable CSV list banane mein madad karta hai, jise Demand Tab mein istemaal kiya ja sakta hai.</p>
-    <a href="{{ url_for('contractor_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
-    <h4 style="margin-top: 2.5rem;"><i class="fa-solid fa-wand-magic-sparkles fa-fw"></i> Allocation List</h4>
-    <p>
-        NREGA report se copy kiye gaye raw text block se <strong>Work Codes</strong> (e.g., 34.../RC/...) ko extract karta hai.
-    </p>
-    <p><strong>Use:</strong> Isse banayi gayi CSV ko Desktop App ke <strong>Demand Tab</strong> mein 'Load' button se load kiya ja sakta hai taaki 'Auto-Allocate' feature ka istemaal kiya ja sake.</p>
-    <a href="{{ url_for('allocation_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
-    <hr>
+    <div class="mb-10">
+        <h3 class="text-xl font-semibold mb-6 text-primary border-b border-gray-200 dark:border-gray-700 pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-lg"></i> Demand Automation Tools
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <i class="fa-solid fa-address-card text-primary text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Applicant List</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Process 'Application Register' HTML files to extract Applicant Names and Job Card numbers into a clean CSV.
+                        </p>
+                        <a href="{{ url_for('applicant_list') }}" class="text-sm font-semibold text-primary hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
 
-    <h3>WC Gen Automation Tools</h3>
+            <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <i class="fa-solid fa-list-check text-primary text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Contractor List</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Filter the master applicant list, search by name/job card, and create manageable contractor-specific lists.
+                        </p>
+                        <a href="{{ url_for('contractor_list') }}" class="text-sm font-semibold text-primary hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                        <i class="fa-solid fa-wand-magic-sparkles text-primary text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Allocation List</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Extract Work Codes (e.g., 34.../RC/...) from raw NREGA report text blocks for auto-allocation.
+                        </p>
+                        <a href="{{ url_for('allocation_list') }}" class="text-sm font-semibold text-primary hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
-    <h4><i class="fa-solid fa-hashtag fa-fw"></i> Scheme List</h4>
-    <p>
-        Yeh ek web-based form (Excel jaisa) hai jisse aap aasani se Work Code generation ke liye zaroori complex "Scheme List" CSV file bana sakte hain.
-        Yeh tool data (khata, plot, village, beneficiary details, etc.) ko sahi format mein taiyaar karne mein help karta hai.
-    </p>
-    <p><strong>Use:</strong> Yahan se generate ki gayi CSV file Desktop App ke <strong>WC Gen Tab</strong> mein batch automation ke liye input ka kaam karti hai.</p>
-    <a href="{{ url_for('scheme_list') }}" class="btn secondary" style="width: auto; margin-top: 1rem;">Go to Tool</a>
+    <hr class="my-8 border-gray-200 dark:border-gray-700">
+
+    <div class="mb-10">
+        <h3 class="text-xl font-semibold mb-6 text-primary border-b border-gray-200 dark:border-gray-700 pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-toolbox text-lg"></i> Utilities & Generators
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
+                        <i class="fa-solid fa-scissors text-purple-600 dark:text-purple-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Scheme Extractor</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Paste raw report text to smartly extract Scheme Names and Work Codes into a structured CSV format.
+                        </p>
+                        <a href="{{ url_for('scheme_extractor') }}" class="text-sm font-semibold text-purple-600 dark:text-purple-400 hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center shrink-0 group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors">
+                        <i class="fa-solid fa-file-invoice text-green-600 dark:text-green-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Demand Generator</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            Combine Scheme Lists and Labour Lists to generate and print bulk Demand Forms automatically.
+                        </p>
+                        <a href="{{ url_for('demand_tool') }}" class="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+             <div class="p-5 bg-gray-50 dark:bg-dark-bg rounded-xl border border-gray-200 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-800 transition-colors group">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center shrink-0 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-colors">
+                        <i class="fa-solid fa-hashtag text-yellow-600 dark:text-yellow-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">Scheme List (WC Gen)</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            A web-based Excel-like form to prepare complex Scheme List CSVs (Plot, Khata, Beneficiary details) for WC generation.
+                        </p>
+                        <a href="{{ url_for('scheme_list') }}" class="text-sm font-semibold text-yellow-600 dark:text-yellow-400 hover:underline">Open Tool &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

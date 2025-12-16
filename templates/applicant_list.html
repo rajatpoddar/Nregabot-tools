@@ -5,66 +5,78 @@
 {% block header_title %}Applicant List{% endblock %}
 
 {% block content %}
-    <div class="note-box">
-        <p><strong>How to get the file:</strong> Go to the Panchayat Reports on R5.IPPE > 1. Application Register. Once the page loads, save it by pressing <strong>Ctrl+S</strong> (or Cmd+S). This will save the required HTML file. Upload that file here to extract a CSV for demand automation.</p>
+    <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 mb-8 rounded-r-lg">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fa-solid fa-lightbulb text-blue-600 dark:text-blue-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>How to get the file:</strong> Go to the Panchayat Reports on R5.IPPE > 1. Application Register. Save the page using <strong>Ctrl+S</strong> (Webpage, Complete/HTML). Upload that file here.
+                </p>
+            </div>
+        </div>
     </div>
     
-    <form id="applicant-list-form" action="{{ url_for('applicant_list') }}" method="post" enctype="multipart/form-data" style="margin-top: 2rem;">
+    <form id="applicant-list-form" action="{{ url_for('applicant_list') }}" method="post" enctype="multipart/form-data" class="space-y-6">
         
-        <div class="form-group">
-            <label for="panchayat">Panchayat Name (Optional):</label>
-            <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori (if left blank, will try to auto-detect)">
+        <div>
+            <label for="panchayat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Panchayat Name (Optional)</label>
+            <input type="text" id="panchayat" name="panchayat" placeholder="e.g., Palojori (if left blank, will try to auto-detect)"
+                class="w-full md:w-1/2 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm">
         </div>
 
-        <div class="form-group">
-            <label for="html_file_label_container">Upload Saved HTML File:</label>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Saved HTML File</label>
             
-            <input type="file" id="html_file" name="html_file" accept=".html,.htm" required class="file-input-hidden">
-            
-            <div class="file-input-container" id="html_file_label_container">
-                <label for="html_file" class="btn secondary"> <i class="fa-solid fa-upload"></i> Choose File
+            <div class="flex items-center gap-4 flex-wrap">
+                <input type="file" id="html_file" name="html_file" accept=".html,.htm" required class="hidden">
+                
+                <label for="html_file" class="cursor-pointer inline-flex items-center px-5 py-2.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fa-solid fa-upload mr-2 text-primary"></i> Choose File
                 </label>
-                <span id="file-name" class="file-name-display">No file chosen</span>
+                
+                <span id="file-name" class="text-sm text-gray-500 dark:text-gray-400 italic break-all">
+                    No file chosen
+                </span>
             </div>
         </div>
-        <div class="action-buttons">
-            <button type="submit" class="btn">Extract & Download CSV</button>
-            <button id="save-cloud-btn" type="button" class="btn secondary">Save to Cloud</button>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100 dark:border-gray-700 mt-6">
+            <button type="submit" class="inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all transform hover:-translate-y-0.5">
+                <i class="fa-solid fa-file-csv mr-2"></i> Extract & Download CSV
+            </button>
+            
+            <button id="save-cloud-btn" type="button" class="inline-flex justify-center items-center px-6 py-3 border border-gray-300 dark:border-gray-600 shadow-sm text-base font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all">
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Save to Cloud
+            </button>
         </div>
     </form>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-container" style="margin-top: 1.5rem;">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // --- NEW: Fix for file name display ---
+    // File Name Update Logic
     document.getElementById('html_file').addEventListener('change', function() {
         const fileNameDisplay = document.getElementById('file-name');
         if (this.files.length > 0) {
             fileNameDisplay.textContent = this.files[0].name;
+            fileNameDisplay.classList.remove('italic');
+            fileNameDisplay.classList.add('font-medium', 'text-gray-700', 'dark:text-gray-300');
         } else {
             fileNameDisplay.textContent = 'No file chosen';
+            fileNameDisplay.classList.add('italic');
+            fileNameDisplay.classList.remove('font-medium', 'text-gray-700', 'dark:text-gray-300');
         }
     });
-    // --- END FIX ---
 
-    // This button has custom logic, so it doesn't use handleCloudSaveClick
+    // Cloud Save Logic
     document.getElementById('save-cloud-btn').addEventListener('click', async function() {
         const buttonElement = this;
         const originalText = buttonElement.innerHTML;
         buttonElement.disabled = true;
         buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
     
-        // Step 1: Check login status
         const isLoggedIn = await checkLoginStatus();
         if (!isLoggedIn) {
             alert('You are not logged in.\n\nPlease log in to license.nregabot.com in the new window, then try saving again.');
@@ -74,9 +86,8 @@
             return;
         }
     
-        // Step 2: User is logged in, extract data from our *own* server
         buttonElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Extracting...';
-        const form = document.getElementById('applicant-list-form'); // <-- UPDATED ID
+        const form = document.getElementById('applicant-list-form');
         const formData = new FormData(form);
         
         if (!document.getElementById('html_file').value) {
@@ -87,37 +98,30 @@
         }
     
         try {
-            // Step 3: Fetch CSV data from the /applicant-list endpoint
-            const response = await fetch("{{ url_for('applicant_list') }}", { // <-- UPDATED url_for
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch("{{ url_for('applicant_list') }}", { method: 'POST', body: formData });
     
             if (!response.ok) {
                 const errorHtml = await response.text();
-                const match = /<div class="flash error">(.*?)<\/div>/.exec(errorHtml);
+                // Simple regex to catch flash messages if returned in HTML
+                const match = /<div class=".*flash error.*">(.*?)<\/div>/.exec(errorHtml);
                 if (match && match[1]) throw new Error(match[1]);
                 throw new Error('Failed to extract data. Check file format.');
             }
             
             const csvContent = await response.text();
             
-            // Step 4: Get filename from header
+            // Get filename from header
             const disposition = response.headers.get('content-disposition');
             let baseFilename = 'jobcards.csv';
             if (disposition) {
                 const filenameMatch = /filename="?([^"]+)"?/.exec(disposition);
-                if (filenameMatch && filenameMatch[1]) {
-                    baseFilename = filenameMatch[1];
-                }
+                if (filenameMatch && filenameMatch[1]) baseFilename = filenameMatch[1];
             }
     
-            // Step 5: Create dynamic filename and save to cloud
             const now = new Date();
-            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+            const timestamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
             const finalFilename = `${baseFilename.replace('.csv', '')}_${timestamp}.csv`;
     
-            // Directly call saveToCloud
             await saveToCloud(csvContent, 'Uploads/jobcards', finalFilename, buttonElement);
     
         } catch (err) {
@@ -126,5 +130,5 @@
             buttonElement.disabled = false;
         }
     });
-    </script>
-    {% endblock %}
+</script>
+{% endblock %}

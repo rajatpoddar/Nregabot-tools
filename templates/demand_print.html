@@ -4,217 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ data.work_code[-6:] if data.work_code else 'Demand_Print' }}</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans Devanagari"', 'sans-serif'],
+                    },
+                    screens: {
+                        'print': {'raw': 'print'},
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --print-font: 'Noto Sans Devanagari', sans-serif;
-        }
-        body {
-            font-family: var(--print-font);
-            margin: 0;
-            padding: 0;
-            background-color: #525659; /* Browser-like dark bg for preview */
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .controls {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-print {
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            font-weight: bold;
-        }
-
-        /* --- A4 Page Logic --- */
-        .page {
-            background: white;
-            width: 210mm;
-            min-height: 297mm; /* A4 Height */
-            padding: 15mm 20mm; /* Proper Margins */
-            margin: 20px auto;
-            box-sizing: border-box;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            
-            /* Flexbox to push footer down */
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .content-area {
-            flex-grow: 1; /* Pushes footer down */
-        }
-
-        /* Typography */
-        p { margin: 5px 0; font-size: 11pt; line-height: 1.4; }
-        
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 6px 4px; /* Thoda padding badhaya */
-            font-size: 10pt;
-        }
-        th {
-            text-align: center;
-            background: #f0f0f0; /* Light Gray for print clarity */
-            font-weight: bold;
-        }
-        .text-center { text-align: center; }
-
-        /* Footer Signatures */
-        .footer-sigs {
-            margin-top: 50px; /* Space from content */
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            text-align: center;
-            font-weight: bold;
-            font-size: 10pt;
-            padding-top: 10mm; /* Extra breathing room */
-        }
-        .footer-sigs div {
-            width: 18%;
-            border-top: 1px dashed #ccc; /* Sign line hint */
-            padding-top: 5px;
-        }
-
-        /* --- Print Specifics --- */
+        /* Strict A4 Page Rules */
         @page {
             size: A4;
-            margin: 0; /* Browser margin zero karein */
-        }
-        @media print {
-            body { 
-                background: none; 
-                display: block; 
-            }
-            .controls { display: none; }
-            .page {
-                margin: 0;
-                box-shadow: none;
-                width: 100%;
-                min-height: 297mm;
-                page-break-after: always;
-            }
-            th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            margin: 0; /* Browser ke default headers/footers hatane ke liye */
         }
 
-        /* --- Mobile Preview Optimization --- */
-        @media screen and (max-width: 768px) {
-            .page {
-                width: 100%;
-                max-width: 100%;
+        @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
                 margin: 0;
-                padding: 10mm; /* Kam padding mobile ke liye */
-                min-height: auto; /* Allow auto height on phone preview */
+                padding: 0;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
             }
-            body {
-                background: white;
-                display: block;
+            
+            .no-print { 
+                display: none !important; 
             }
-            .controls {
-                position: static;
-                margin: 10px;
-                justify-content: center;
+
+            /* Main Page Container */
+            .page-container {
+                width: 210mm !important;
+                height: 296mm !important; /* 1mm buffer safety ke liye */
+                margin: 0 auto !important;
+                padding: 10mm 15mm !important; 
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; 
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+                overflow: hidden; 
             }
-            .btn-print { width: 100%; }
+
+            /* Table Styles for Print */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            /* Cell sizing fixed for uniform 20 rows */
+            td, th {
+                padding: 0 4px !important; /* Horizontal padding */
+                vertical-align: middle;
+                border: 1px solid black;
+                font-size: 10pt !important;
+                height: 8mm !important; /* Fixed height ~30px per row to fit 20 rows */
+                white-space: nowrap; /* Prevent wrapping from breaking height */
+                overflow: hidden;
+            }
+            
+            /* Allow name wrapping if strictly needed, but keep height constraint */
+            td.name-cell {
+                white-space: normal;
+                line-height: 1.1;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="controls">
-        <button onclick="window.print()" class="btn-print">🖨️ Print Demand</button>
-    </div>
+<body class="bg-gray-600 flex justify-center min-h-screen font-sans text-gray-900">
 
-    <div class="page">
-        <div class="content-area">
-            
-            <div class="header-row">
-                <div>
-                    <p>सेवा में</p>
-                    <p style="margin-left: 20px;">मुखिया / पंचायत सचिव / रोजगार सेवक</p>
-                </div>
-                <div style="text-align: right;">
-                    <p>ग्राम पंचायत: <strong>{{ data.panchayat }}</strong></p>
-                </div>
-            </div>
-
-            <div style="margin: 20px 0;">
-                <table style="border: none;">
-                    <tr>
-                        <td style="border: none; width: 60px; vertical-align: top; font-weight: bold;">विषय :-</td>
-                        <td style="border: none; vertical-align: top; font-weight: bold;">मनरेगा में मजदूरों का डिमांड के सम्बन्ध में</td>
-                    </tr>
-                </table>
-            </div>
-
-            <div style="margin-bottom: 5px; text-align: justify; line-height: 1.4; font-size: 11pt;">
-                {{ data.scheme_full_name }}
-            </div>
-            <div style="margin-bottom: 15px; font-weight: bold; font-size: 11pt;">
-                ({{ data.work_code }})
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 8%;">क्र०</th>
-                        <th style="width: 30%;">जॉब कार्ड स०</th>
-                        <th>मजदुर का नाम</th>
-                        <th style="width: 25%;">अभ्युक्ति</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for labour in data.labourers %}
-                    <tr>
-                        <td class="text-center">{{ labour.sr }}</td>
-                        <td>{{ labour.card }}</td>
-                        <td>{{ labour.name }}</td>
-                        <td></td>
-                    </tr>
-                    {% endfor %}
-                    
-                    {% set remaining = 20 - data.labourers|length %}
-                    {% if remaining > 0 %}
-                        {% for i in range(remaining) %}
-                        <tr><td style="height: 24px;"></td><td></td><td></td><td></td></tr>
-                        {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
-        </div> <div class="footer-sigs">
-            <div style="border:none;">लाभुक का हा०</div>
-            <div style="border:none;">ग्राम रो० सेवक</div>
-            <div style="border:none;">कनीय अभियंता</div>
-            <div style="border:none;">पंचायत सचिव</div>
-            <div style="border:none;">मुखिया</div>
+    <div class="no-print fixed top-4 right-4 z-50 flex flex-col gap-2">
+        <button onclick="window.print()" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Demand (A4)
+        </button>
+        <div class="bg-yellow-100 text-yellow-800 text-xs p-2 rounded border border-yellow-300 max-w-[200px]">
+            <strong>Tip:</strong> Ensure Scale is 100% and Paper Size is A4 in print settings.
         </div>
     </div>
+
+    <div class="page-container bg-white w-[210mm] min-h-[297mm] mx-auto my-8 p-[15mm_20mm] shadow-2xl flex flex-col justify-between print:shadow-none print:my-0">
+        
+        <div class="flex-grow">
+            <div class="flex justify-between items-start mb-2 print:mb-2">
+                <div class="text-base leading-relaxed">
+                    <p class="font-medium">सेवा में</p>
+                    <p class="ml-6">मुखिया / पंचायत सचिव / रोजगार सेवक / कनीय अभियंता</p>
+                </div>
+                <div class="text-right">
+                    <p>ग्राम पंचायत: <span class="font-bold text-lg">{{ data.panchayat }}</span></p>
+                </div>
+            </div>
+
+            <div class="mb-2 print:mb-2">
+                <div class="flex items-start gap-2">
+                    <span class="font-bold whitespace-nowrap">विषय :-</span>
+                    <span class="font-bold underline underline-offset-4">मनरेगा में मजदूरों का डिमांड के सम्बन्ध में</span>
+                </div>
+            </div>
+
+            <div class="mb-1 text-justify text-[10pt] leading-tight font-medium">
+                {{ data.scheme_full_name }}
+            </div>
+            <div class="mb-3 font-bold text-[10pt]">
+                Work Code: {{ data.work_code }}
+            </div>
+
+            <div class="w-full">
+                <table class="w-full text-sm border-collapse border border-black">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="w-[8%] text-center bg-gray-200">क्र०</th>
+                            <th class="w-[30%] text-left bg-gray-200">जॉब कार्ड स०</th>
+                            <th class="text-left bg-gray-200">मजदुर का नाम</th>
+                            <th class="w-[20%] text-left bg-gray-200">अभ्युक्ति</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for labour in data.labourers %}
+                        <tr>
+                            <td class="text-center font-medium">{{ labour.sr }}</td>
+                            <td class="font-mono text-xs font-semibold">{{ labour.card }}</td>
+                            <td class="name-cell font-medium">{{ labour.name }}</td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% set total_rows = 20 %}
+                        {% set current_rows = data.labourers|length %}
+                        {% set remaining = total_rows - current_rows %}
+                        
+                        {% if remaining > 0 %}
+                            {% for i in range(remaining) %}
+                            <tr>
+                                <td class="text-center">{{ current_rows + loop.index }}</td> <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 print:pt-2">
+            <div class="flex justify-between items-end text-center font-bold text-[10pt]">
+                <div class="w-[18%] flex flex-col items-center gap-6">
+                    <div class="h-6"></div> <div class="border-t border-dashed border-gray-400 w-full pt-1">लाभुक</div>
+                </div>
+                <div class="w-[18%] flex flex-col items-center gap-6">
+                    <div class="h-6"></div>
+                    <div class="border-t border-dashed border-gray-400 w-full pt-1">रोजगार सेवक</div>
+                </div>
+                <div class="w-[18%] flex flex-col items-center gap-6">
+                    <div class="h-6"></div>
+                    <div class="border-t border-dashed border-gray-400 w-full pt-1">कनीय अभियंता</div>
+                </div>
+                <div class="w-[18%] flex flex-col items-center gap-6">
+                    <div class="h-6"></div>
+                    <div class="border-t border-dashed border-gray-400 w-full pt-1">पंचायत सचिव</div>
+                </div>
+                <div class="w-[18%] flex flex-col items-center gap-6">
+                    <div class="h-6"></div>
+                    <div class="border-t border-dashed border-gray-400 w-full pt-1">मुखिया</div>
+                </div>
+            </div>
+            
+            <div class="text-[8px] text-gray-400 text-right mt-1 hidden print:block">
+                Generated via NregaBot Tools • {{ data.date }}
+            </div>
+        </div>
+
+    </div>
+
 </body>
 </html>
