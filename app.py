@@ -385,8 +385,10 @@ def scheme_extractor():
             flash("No text provided", "error")
             return redirect(url_for('scheme_extractor'))
 
-        # Regex to clean name and extract code
-        pattern = re.compile(r'(?:^\d+\s*|\n\d+\s*)?([^\n\r]*?)\s*(\(34\d{8}\/[A-Z]+\/\d+\))')
+        # Regex Update: 
+        # 1. re.DOTALL जोड़ा गया है ताकि मल्टी-लाइन नाम (जैसे PMAY वाले) भी कैप्चर हो सकें।
+        # 2. कोड पैटर्न को (?:/[A-Z]+)+ किया गया है ताकि /IF/YD/ जैसे एक्स्ट्रा हिस्सों को भी सपोर्ट मिले।
+        pattern = re.compile(r'(?:^\d+\s*|\n\d+\s*)?(.*?)\s*(\(34\d{8}(?:/[A-Z]+)+/\d+\))', re.DOTALL)
         matches = pattern.findall(raw_text)
         
         if not matches:
@@ -399,14 +401,17 @@ def scheme_extractor():
         
         count = 0
         for name, code in matches:
-            clean_name = re.sub(r'^\d+\s+', '', name.strip())
+            # नाम से एक्स्ट्रा स्पेस और लाइन ब्रेक हटाना
+            clean_name = re.sub(r'\s+', ' ', name.strip())
+            # अगर नाम के शुरू में कोई सीरियल नंबर बच गया हो तो हटाना
+            clean_name = re.sub(r'^\d+\s+', '', clean_name)
+            
             clean_code = code.replace('(', '').replace(')', '').strip()
             writer.writerow([clean_name, clean_code])
             count += 1
 
         output.seek(0)
         
-        # New Filename Format: panchayat_schemes_count.csv
         filename = f"{panchayat_name}_schemes_{count}.csv"
         
         return Response(
