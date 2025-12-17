@@ -9,6 +9,7 @@ import csv
 import io
 from whitenoise import WhiteNoise
 import os
+import json
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key'
@@ -446,6 +447,56 @@ def demand_tool():
         return render_template('demand_print.html', data=data)
         
     return render_template('demand_form.html')
+
+# --- PUBLIC FILE MANAGER LOGIC ---
+PUBLIC_DATA_DIR = os.path.join('static', 'public_data') # Folder structure: static/public_data/District/Block/Panchayat_Master.csv
+
+@app.route('/api/public/locations', methods=['GET'])
+def get_public_locations():
+    """Returns directory structure for Dropdowns (District -> Block -> Panchayat)"""
+    structure = {}
+    if not os.path.exists(PUBLIC_DATA_DIR):
+        os.makedirs(PUBLIC_DATA_DIR)
+        
+    # Walk through the directory
+    for root, dirs, files in os.walk(PUBLIC_DATA_DIR):
+        for file in files:
+            if file.endswith('.csv'):
+                # Expected path: static/public_data/District/Block/Panchayat.csv
+                rel_path = os.path.relpath(os.path.join(root, file), PUBLIC_DATA_DIR)
+                parts = rel_path.split(os.sep)
+                
+                if len(parts) >= 3: # Must be nested properly
+                    district = parts[0]
+                    block = parts[1]
+                    filename = parts[-1]
+                    
+                    if district not in structure: structure[district] = {}
+                    if block not in structure[district]: structure[district][block] = []
+                    
+                    structure[district][block].append(filename)
+    return Response(json.dumps(structure), mimetype='application/json')
+
+@app.route('/api/public/get-file', methods=['POST'])
+def get_public_file():
+    """Fetches content of a selected public file"""
+    data = request.json
+    district = data.get('district')
+    block = data.get('block')
+    filename = data.get('filename')
+    
+    file_path = os.path.join(PUBLIC_DATA_DIR, district, block, filename)
+    
+    # Security check to prevent path traversal
+    if not os.path.abspath(file_path).startswith(os.path.abspath(PUBLIC_DATA_DIR)):
+        return Response("Access Denied", status=403)
+        
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        return Response(json.dumps({'content': content}), mimetype='application/json')
+    return Response("File not found", status=404)
+# ---------------------------------
 
 if __name__ == '__main__':
     init_db()

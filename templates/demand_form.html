@@ -20,18 +20,34 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
     
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">1. Select Scheme List (CSV)</label>
-        <div class="flex items-center gap-3">
-            <input type="file" id="scheme_csv" accept=".csv" class="hidden">
-            <label for="scheme_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <i class="fa-solid fa-file-csv mr-2 text-yellow-600"></i> Upload Schemes
-            </label>
-            <span id="scheme-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">1. Select Scheme List (CSV)</label>
+        
+        <div class="flex gap-2 mb-3 text-xs">
+            <button type="button" id="tab-scheme-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload</button>
+            <button type="button" id="tab-scheme-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
+        </div>
+
+        <div id="source-scheme-upload" class="block">
+            <div class="flex items-center gap-3">
+                <input type="file" id="scheme_csv" accept=".csv" class="hidden">
+                <label for="scheme_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fa-solid fa-file-csv mr-2 text-yellow-600"></i> Choose File
+                </label>
+                <span id="scheme-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+            </div>
+        </div>
+
+        <div id="source-scheme-server" class="hidden space-y-2">
+            <select id="scheme-sel-dist" class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- District --</option></select>
+            <div class="flex gap-2">
+                <select id="scheme-sel-block" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- Block --</option></select>
+                <select id="scheme-sel-file" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- File --</option></select>
+            </div>
+            <button type="button" id="btn-load-scheme-server" disabled class="w-full py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Scheme List</button>
         </div>
 
         <div id="scheme-control-area" class="hidden mt-4 space-y-2 animate-fade-in">
-            <input type="text" id="scheme_filter" placeholder="Search scheme (code or name)..." 
-                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+            <input type="text" id="scheme_filter" placeholder="Search scheme..." class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
             <select id="scheme_select" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
                 <option value="">-- Select Scheme --</option>
             </select>
@@ -39,13 +55,30 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List (CSV)</label>
-        <div class="flex items-center gap-3">
-            <input type="file" id="labour_csv" accept=".csv" class="hidden">
-            <label for="labour_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                <i class="fa-solid fa-users mr-2 text-green-600"></i> Upload Labours
-            </label>
-            <span id="labour-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List (CSV)</label>
+        
+        <div class="flex gap-2 mb-3 text-xs">
+            <button type="button" id="tab-labour-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload</button>
+            <button type="button" id="tab-labour-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
+        </div>
+
+        <div id="source-labour-upload" class="block">
+            <div class="flex items-center gap-3">
+                <input type="file" id="labour_csv" accept=".csv" class="hidden">
+                <label for="labour_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fa-solid fa-users mr-2 text-green-600"></i> Choose File
+                </label>
+                <span id="labour-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+            </div>
+        </div>
+
+        <div id="source-labour-server" class="hidden space-y-2">
+            <select id="labour-sel-dist" class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- District --</option></select>
+            <div class="flex gap-2">
+                <select id="labour-sel-block" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- Block --</option></select>
+                <select id="labour-sel-file" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- File --</option></select>
+            </div>
+            <button type="button" id="btn-load-labour-server" disabled class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Labour List</button>
         </div>
 
         <div id="labour-stats" class="hidden mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between text-xs font-medium text-blue-800 dark:text-blue-200 animate-fade-in">
@@ -135,38 +168,235 @@
 </form>
 
 <script>
+    // --- Global State ---
     let schemes = [];
     let allLabours = [];
     let currentLabourIndex = 0;
+    let publicDataStructure = {};
 
-    // --- SCHEME CSV PARSER ---
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 1. Check for Auto-Load Transfer
+        const transferData = sessionStorage.getItem('nrega_demand_transfer');
+        if (transferData) {
+            try {
+                const labourers = JSON.parse(transferData);
+                const sourceName = sessionStorage.getItem('nrega_demand_source') || 'Contractor List';
+                
+                if (confirm(`Import ${labourers.length} labourers from "${sourceName}"?`)) {
+                    allLabours = labourers;
+                    currentLabourIndex = 0;
+                    document.getElementById('labour-file-name').textContent = "Imported from Contractor List";
+                    document.getElementById('labour-file-name').classList.remove('italic');
+                    document.getElementById('labour-file-name').classList.add('text-green-600', 'font-bold');
+                    document.getElementById('labour-stats').classList.remove('hidden');
+                    updateStats();
+                    setTimeout(() => document.getElementById('btn-add-labours').click(), 500);
+                }
+            } catch(e) { console.error("Transfer error", e); }
+            sessionStorage.removeItem('nrega_demand_transfer');
+        }
+
+        // 2. Fetch Server Locations
+        await initServerData();
+    });
+
+    // --- SERVER DATA LOGIC ---
+    async function initServerData() {
+        try {
+            const res = await fetch('/api/public/locations');
+            if(res.ok) {
+                publicDataStructure = await res.json();
+                populateDistricts('scheme');
+                populateDistricts('labour');
+            }
+        } catch(e) { console.error("Location fetch failed", e); }
+    }
+
+    function populateDistricts(prefix) {
+        const sel = document.getElementById(`${prefix}-sel-dist`);
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- District --</option>';
+        Object.keys(publicDataStructure).sort().forEach(d => {
+            sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+    }
+
+    function setupServerDropdowns(prefix) {
+        const distSel = document.getElementById(`${prefix}-sel-dist`);
+        const blockSel = document.getElementById(`${prefix}-sel-block`);
+        const fileSel = document.getElementById(`${prefix}-sel-file`);
+        const loadBtn = document.getElementById(`btn-load-${prefix}-server`);
+
+        if(!distSel) return;
+
+        distSel.addEventListener('change', function() {
+            const dist = this.value;
+            blockSel.innerHTML = '<option value="">-- Block --</option>';
+            blockSel.disabled = !dist;
+            fileSel.innerHTML = '<option value="">-- File --</option>';
+            fileSel.disabled = true;
+            loadBtn.disabled = true;
+            
+            if(dist && publicDataStructure[dist]) {
+                Object.keys(publicDataStructure[dist]).sort().forEach(b => {
+                    blockSel.innerHTML += `<option value="${b}">${b}</option>`;
+                });
+            }
+        });
+
+        blockSel.addEventListener('change', function() {
+            const dist = distSel.value;
+            const block = this.value;
+            fileSel.innerHTML = '<option value="">-- File --</option>';
+            fileSel.disabled = !block;
+            loadBtn.disabled = true;
+
+            if(dist && block && publicDataStructure[dist][block]) {
+                publicDataStructure[dist][block].sort().forEach(f => {
+                    // --- NEW FILTERING LOGIC ---
+                    // Scheme wale dropdown me sirf _schemes.csv dikhe
+                    if (prefix === 'scheme' && !f.toLowerCase().includes('_schemes.csv')) return;
+                    
+                    // Labour wale dropdown me sirf _jobcard.csv dikhe
+                    if (prefix === 'labour' && !f.toLowerCase().includes('_jobcard.csv')) return;
+                    // ---------------------------
+
+                    // Clean filename for display
+                    const cleanName = f.replace('_jobcard.csv','').replace('_schemes.csv','').replace('.csv','');
+                    fileSel.innerHTML += `<option value="${f}">${cleanName}</option>`;
+                });
+            }
+        });
+
+        fileSel.addEventListener('change', function() {
+            loadBtn.disabled = !this.value;
+        });
+
+        loadBtn.addEventListener('click', () => fetchServerFile(prefix));
+    }
+
+    async function fetchServerFile(prefix) {
+        const dist = document.getElementById(`${prefix}-sel-dist`).value;
+        const block = document.getElementById(`${prefix}-sel-block`).value;
+        const fname = document.getElementById(`${prefix}-sel-file`).value;
+        const btn = document.getElementById(`btn-load-${prefix}-server`);
+        
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/public/get-file', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ district: dist, block: block, filename: fname })
+            });
+            const data = await res.json();
+            
+            if(data.content) {
+                if(prefix === 'scheme') processSchemeCSV(data.content, `Server: ${fname}`);
+                else processLabourCSV(data.content, `Server: ${fname}`);
+                
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Loaded!';
+            } else { 
+                alert('File empty'); 
+                btn.innerHTML = originalText;
+            }
+        } catch(e) { 
+            alert('Error loading file'); 
+            btn.innerHTML = originalText;
+        } finally {
+            setTimeout(() => { 
+                if(btn.innerHTML.includes('Loaded')) btn.innerHTML = originalText; 
+                btn.disabled = false; 
+            }, 2000);
+        }
+    }
+
+    setupServerDropdowns('scheme');
+    setupServerDropdowns('labour');
+
+    // --- TAB SWITCHING LOGIC ---
+    function setupTabs(prefix) {
+        const tUp = document.getElementById(`tab-${prefix}-upload`);
+        const tSv = document.getElementById(`tab-${prefix}-server`);
+        const dUp = document.getElementById(`source-${prefix}-upload`);
+        const dSv = document.getElementById(`source-${prefix}-server`);
+
+        if(!tUp || !tSv) return;
+
+        tUp.addEventListener('click', () => {
+            dUp.classList.remove('hidden'); dSv.classList.add('hidden');
+            tUp.className = "px-3 py-1 bg-primary text-white rounded transition-colors";
+            tSv.className = "px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors";
+        });
+
+        tSv.addEventListener('click', () => {
+            dSv.classList.remove('hidden'); dUp.classList.add('hidden');
+            tSv.className = "px-3 py-1 bg-primary text-white rounded transition-colors";
+            tUp.className = "px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors";
+        });
+    }
+
+    setupTabs('scheme');
+    setupTabs('labour');
+
+    // --- DATA PROCESSING ---
+    function processSchemeCSV(text, filenameForDisplay) {
+        const rows = text.split(/\r?\n/);
+        schemes = [];
+        rows.forEach((row, index) => {
+            if (index === 0 || !row.trim()) return;
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+            if (cols.length >= 2) schemes.push({ name: cols[0], code: cols[1] });
+        });
+        document.getElementById('scheme-control-area').classList.remove('hidden');
+        if(filenameForDisplay) {
+            const displayEl = document.getElementById('scheme-file-name');
+            displayEl.textContent = filenameForDisplay;
+            displayEl.classList.remove('italic');
+            displayEl.classList.add('text-primary', 'font-medium');
+        }
+        populateSchemeDropdown(schemes);
+    }
+
+    function processLabourCSV(text, filenameForDisplay) {
+        const rows = text.split(/\r?\n/);
+        allLabours = [];
+        rows.forEach((row, index) => {
+            if (index === 0 || !row.trim()) return;
+            const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
+            if (cols.length >= 2) allLabours.push({ name: cols[0], card: cols[1] });
+        });
+        currentLabourIndex = 0;
+        document.getElementById('labour-stats').classList.remove('hidden');
+        if(filenameForDisplay) {
+            const displayEl = document.getElementById('labour-file-name');
+            displayEl.textContent = filenameForDisplay;
+            displayEl.classList.remove('italic');
+            displayEl.classList.add('text-green-600', 'font-medium');
+        }
+        updateStats();
+    }
+
+    // --- EVENT LISTENERS (Uploads & Controls) ---
     document.getElementById('scheme_csv').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        document.getElementById('scheme-file-name').textContent = file.name;
-
         const reader = new FileReader();
-        reader.onload = function(event) {
-            const text = event.target.result;
-            const rows = text.split(/\r?\n/);
-            schemes = [];
-            
-            rows.forEach((row, index) => {
-                if (index === 0 || !row.trim()) return;
-                // Regex handles commas inside quotes
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-                if (cols.length >= 2) {
-                    schemes.push({ name: cols[0], code: cols[1] });
-                }
-            });
-            
-            document.getElementById('scheme-control-area').classList.remove('hidden');
-            populateSchemeDropdown(schemes);
-        };
+        reader.onload = (event) => processSchemeCSV(event.target.result, file.name);
         reader.readAsText(file);
     });
 
-    // Filter Logic
+    document.getElementById('labour_csv').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => processLabourCSV(event.target.result, file.name);
+        reader.readAsText(file);
+    });
+
     document.getElementById('scheme_filter').addEventListener('input', function(e) {
         const val = e.target.value.toLowerCase();
         const filtered = schemes.filter(s => s.code.toLowerCase().includes(val) || s.name.toLowerCase().includes(val));
@@ -197,28 +427,6 @@
         document.getElementById('scheme-preview-text').classList.remove('hidden');
     });
 
-    // --- LABOUR CSV LOGIC ---
-    document.getElementById('labour_csv').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        document.getElementById('labour-file-name').textContent = file.name;
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const text = event.target.result;
-            const rows = text.split(/\r?\n/);
-            allLabours = [];
-            rows.forEach((row, index) => {
-                if (index === 0 || !row.trim()) return;
-                const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
-                if (cols.length >= 2) allLabours.push({ name: cols[0], card: cols[1] });
-            });
-            currentLabourIndex = 0;
-            updateStats();
-            document.getElementById('labour-stats').classList.remove('hidden');
-        };
-        reader.readAsText(file);
-    });
-
     function updateStats() {
         document.getElementById('lbl-total').textContent = allLabours.length;
         document.getElementById('lbl-used').textContent = currentLabourIndex;
@@ -226,16 +434,14 @@
     }
 
     document.getElementById('btn-add-labours').addEventListener('click', function() {
-        if (allLabours.length === 0) { alert("Please upload a labour list first."); return; }
+        if (allLabours.length === 0) { alert("Please upload or load a labour list first."); return; }
         const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
         const remaining = allLabours.length - currentLabourIndex;
         const actualAdd = Math.min(countToAdd, remaining);
-
         if (actualAdd <= 0) { alert("No more labourers remaining!"); return; }
 
         const tbody = document.getElementById('labour-tbody');
         tbody.innerHTML = ''; 
-
         for (let i = 0; i < actualAdd; i++) {
             const labour = allLabours[currentLabourIndex + i];
             const rowIdx = i + 1;
@@ -263,7 +469,7 @@
         }
     });
 
-    function adjustCount(change) {
+    window.adjustCount = function(change) {
         const input = document.getElementById('labour_count');
         let val = parseInt(input.value) || 0;
         val += change;
@@ -272,13 +478,4 @@
         input.value = val;
     }
 </script>
-
-<style>
-    /* Remove number input arrows */
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-</style>
 {% endblock %}

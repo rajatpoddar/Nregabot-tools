@@ -4,212 +4,328 @@
 {% block header_title %}Contractor's Labour List{% endblock %}
 
 {% block header_extra %}
-<div id="header-stats-container" class="hidden md:flex items-center gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
-    <span class="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">Total: <strong id="stat-total" class="text-blue-600 dark:text-blue-400">0</strong></span>
-    <span id="stat-selected-wrapper" class="px-2 py-1 rounded bg-green-50 dark:bg-green-900/20">Selected: <strong id="stat-selected" class="text-green-600 dark:text-green-400">0</strong></span>
+<div id="header-stats-container"
+    class="hidden md:flex items-center gap-4 text-xs font-medium text-gray-500 dark:text-gray-400">
+    <span class="px-2 py-1 rounded bg-gray-100 dark:bg-gray-800">Total: <strong id="stat-total"
+            class="text-blue-600 dark:text-blue-400">0</strong></span>
+    <span id="stat-selected-wrapper" class="px-2 py-1 rounded bg-green-50 dark:bg-green-900/20">Selected: <strong
+            id="stat-selected" class="text-green-600 dark:text-green-400">0</strong></span>
 </div>
 {% endblock %}
 
 {% block content %}
 
-    <style>
-        /* Row States using Tailwind colors variables */
-        .selected-row { background-color: #eff6ff !important; } /* bg-blue-50 */
-        .dark .selected-row { background-color: rgba(30, 64, 175, 0.2) !important; } /* dark:bg-blue-900/20 */
-        
-        .deleted-row { background-color: #fef2f2 !important; color: #dc2626 !important; text-decoration: line-through; opacity: 0.7; }
-        .dark .deleted-row { background-color: rgba(153, 27, 27, 0.2) !important; color: #f87171 !important; }
-        
-        .ambiguous-row { background-color: #fefce8 !important; } /* bg-yellow-50 */
-        .dark .ambiguous-row { background-color: rgba(161, 98, 7, 0.1) !important; }
-        
-        /* Table Scrollbar */
-        .table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
-        .table-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
-        .dark .table-scroll::-webkit-scrollbar-thumb { background-color: #475569; }
-    </style>
+<style>
+    /* Row States using Tailwind colors variables */
+    .selected-row {
+        background-color: #eff6ff !important;
+    }
 
-    <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
-        <div class="flex">
-            <div class="flex-shrink-0"><i class="fa-solid fa-lightbulb text-blue-600 dark:text-blue-400"></i></div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Smart Features</h3>
-                <ul class="list-disc list-inside text-sm text-blue-700 dark:text-blue-300 mt-1 space-y-1">
-                    <li><strong>Village Filter:</strong> Dropdown se Village select karein taaki search aasaan ho.</li>
-                    <li><strong>Bulk Select (⚡):</strong> Job Card numbers paste karein. Sirf selected village ke match honge.</li>
-                </ul>
-            </div>
+    /* bg-blue-50 */
+    .dark .selected-row {
+        background-color: rgba(30, 64, 175, 0.2) !important;
+    }
+
+    /* dark:bg-blue-900/20 */
+
+    .deleted-row {
+        background-color: #fef2f2 !important;
+        color: #dc2626 !important;
+        text-decoration: line-through;
+        opacity: 0.7;
+    }
+
+    .dark .deleted-row {
+        background-color: rgba(153, 27, 27, 0.2) !important;
+        color: #f87171 !important;
+    }
+
+    .ambiguous-row {
+        background-color: #fefce8 !important;
+    }
+
+    /* bg-yellow-50 */
+    .dark .ambiguous-row {
+        background-color: rgba(161, 98, 7, 0.1) !important;
+    }
+
+    /* Table Scrollbar */
+    .table-scroll::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .dark .table-scroll::-webkit-scrollbar-thumb {
+        background-color: #475569;
+    }
+</style>
+
+<div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">
+    <div class="flex">
+        <div class="flex-shrink-0"><i class="fa-solid fa-lightbulb text-blue-600 dark:text-blue-400"></i></div>
+        <div class="ml-3">
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">Smart Features</h3>
+            <ul class="list-disc list-inside text-sm text-blue-700 dark:text-blue-300 mt-1 space-y-1">
+                <li><strong>Village Filter:</strong> Dropdown se Village select karein taaki search aasaan ho.</li>
+                <li><strong>Bulk Select (⚡):</strong> Job Card numbers paste karein. Sirf selected village ke match
+                    honge.</li>
+            </ul>
         </div>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">1. Master Applicant List (Required)</label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h4 class="font-bold text-gray-700 dark:text-gray-200 mb-3 border-b border-gray-100 dark:border-gray-700 pb-2">
+            1. Master Applicant List</h4>
+
+        <div class="flex gap-2 mb-4 text-sm">
+            <button id="tab-upload" class="px-3 py-1 bg-primary text-white rounded-md transition-colors">Upload
+                File</button>
+            <button id="tab-server"
+                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 transition-colors">Select
+                from Server</button>
+        </div>
+
+        <div id="source-upload" class="block">
             <div class="flex items-center gap-3">
                 <input type="file" id="csv_file" name="csv_file" accept=".csv" class="hidden">
-                <label for="csv_file" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fa-solid fa-upload mr-2 text-primary"></i> Choose CSV
+                <label for="csv_file"
+                    class="w-full text-center cursor-pointer px-4 py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-500">Click to upload Master CSV</p>
+                    <p id="file-name" class="text-xs text-primary mt-1 font-medium">No file chosen</p>
                 </label>
-                <button id="choose-cloud-btn" type="button" class="hidden inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fa-solid fa-cloud-arrow-down mr-2 text-blue-500"></i> Cloud
-                </button>
             </div>
-            <p id="file-name" class="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">No file chosen</p>
         </div>
 
-        <div class="border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 md:pl-6 pt-4 md:pt-0">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">2. Existing Contractor List (Optional)</label>
-            <div class="flex items-center gap-3">
-                <input type="file" id="existing_file" name="existing_file" accept=".csv" class="hidden">
-                <label for="existing_file" class="cursor-pointer inline-flex items-center px-4 py-2 border border-dashed border-gray-400 dark:border-gray-500 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                    <i class="fa-solid fa-file-pen mr-2 text-gray-500"></i> Choose List
-                </label>
-                <button id="choose-cloud-existing-btn" type="button" class="hidden inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fa-solid fa-cloud-arrow-down mr-2 text-blue-500"></i> Cloud
-                </button>
-            </div>
-            <p id="existing-file-name" class="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">No file chosen (New List)</p>
-        </div>
-    </div>
-
-    <div class="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
-        <button id="load-csv-btn" class="w-full md:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
-            <i class="fa-solid fa-play mr-2"></i> Load & Prepare Data
-        </button>
-        <p id="loading-message" class="hidden mt-2 text-sm text-blue-600 dark:text-blue-400 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Processing files...</p>
-    </div>
-
-    <div id="data-controls" class="hidden space-y-6">
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div id="source-server" class="hidden space-y-3">
             <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Contractor Name</label>
-                <input type="text" id="contractor_name" placeholder="e.g., Suresh Singh" 
-                    class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
-            </div>
-
-            <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter Village</label>
-                <select id="village-filter" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
-                    <option value="all">All Villages</option>
+                <select id="sel-district"
+                    class="w-full p-2 text-sm border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-white">
+                    <option value="">-- Select District --</option>
                 </select>
             </div>
-
-            <div>
-                <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Search 
-                    <span id="search-selected-count" class="hidden text-green-600 dark:text-green-400 ml-1">(<strong id="search-selected-value">0</strong> selected)</span>
-                </label>
-                <div class="flex gap-2">
-                    <input type="text" id="search_box" placeholder="Name or last digits..." 
-                        class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
-                    <button id="open-bulk-btn" class="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg text-sm font-medium transition-colors" title="Bulk Paste">
-                        <i class="fa-solid fa-bolt"></i>
-                    </button>
-                </div>
+            <div class="flex gap-2">
+                <select id="sel-block" disabled
+                    class="w-1/2 p-2 text-sm border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-white disabled:opacity-50">
+                    <option value="">-- Block --</option>
+                </select>
+                <select id="sel-file" disabled
+                    class="w-1/2 p-2 text-sm border rounded bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-white disabled:opacity-50">
+                    <option value="">-- Panchayat File --</option>
+                </select>
             </div>
-        </div>
-
-        <div class="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
-            <div id="table-scroll-container" class="overflow-auto table-scroll max-h-[60vh]">
-                <table id="applicant-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left w-12">
-                                <input type="checkbox" id="select-all-checkbox" class="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4">
-                            </th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Applicant Name</th>
-                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job Card No.</th>
-                        </tr>
-                    </thead>
-                    <tbody id="applicant-table-body" class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div id="row-count-message" class="text-sm text-gray-500 dark:text-gray-400">
-                Total: <strong id="count-total" class="text-blue-600 dark:text-blue-400">0</strong> 
-                <span id="count-deleted-span" class="hidden text-red-500 ml-2">Del: <strong id="count-deleted">0</strong></span>
-                <span id="count-matching-span" class="hidden text-orange-500 ml-2">Match: <strong id="count-matching">0</strong></span>
-                <span class="ml-2 text-green-600 dark:text-green-400">Selected: <strong id="count-selected">0</strong></span>
-            </div>
-            <div id="pagination-controls" class="flex gap-2"></div>
-        </div>
-
-        <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button id="preview-btn" class="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm transition-colors text-sm font-medium">
-                <i class="fa-solid fa-list-check mr-2"></i> Preview Selected
-            </button>
-            <button id="download-csv-btn" class="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors text-sm font-medium">
-                <i class="fa-solid fa-download mr-2"></i> Download CSV
-            </button>
-            <button id="save-cloud-btn" type="button" class="hidden flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
-                <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Cloud Save
-            </button>
-            <button id="reset-btn" type="button" class="md:ml-auto inline-flex justify-center items-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-300 rounded-lg transition-colors text-sm font-medium">
-                <i class="fa-solid fa-rotate-left mr-2"></i> Reset
+            <button id="btn-fetch-server" disabled
+                class="w-full py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-download mr-1"></i> Load Master List
             </button>
         </div>
     </div>
 
-    <div id="bulk-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-dark-card w-full max-w-lg rounded-xl shadow-2xl flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-700 animate-fade-in">
-            <div class="p-5 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-yellow-500"></i> Bulk Select Job Cards
-                </h3>
-                <p class="text-xs text-gray-500 mt-1">Paste numbers separated by space, comma or new line. e.g. <code>660, 502</code></p>
-            </div>
-            <div class="p-5 flex-1">
-                <textarea id="bulk-textarea" class="w-full h-32 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-sm font-mono focus:ring-2 focus:ring-primary focus:border-transparent resize-none" placeholder="Paste numbers here..."></textarea>
-                <div id="bulk-result-msg" class="mt-3 text-sm min-h-[1.5em]"></div>
-            </div>
-            <div class="p-5 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
-                <button id="close-bulk-btn" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">Cancel</button>
-                <button id="apply-bulk-btn" class="px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">Auto Select Matches</button>
-            </div>
+    <div class="border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 md:pl-6 pt-4 md:pt-0">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">2. Existing Contractor List
+            (Optional)</label>
+        <div class="flex items-center gap-3">
+            <input type="file" id="existing_file" name="existing_file" accept=".csv" class="hidden">
+            <label for="existing_file"
+                class="cursor-pointer inline-flex items-center px-4 py-2 border border-dashed border-gray-400 dark:border-gray-500 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <i class="fa-solid fa-file-pen mr-2 text-gray-500"></i> Choose List
+            </label>
+            <button id="choose-cloud-existing-btn" type="button"
+                class="hidden inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <i class="fa-solid fa-cloud-arrow-down mr-2 text-blue-500"></i> Cloud
+            </button>
         </div>
+        <p id="existing-file-name" class="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">No file chosen (New
+            List)</p>
     </div>
+</div>
 
-    <div id="preview-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-dark-card w-full max-w-3xl rounded-xl shadow-2xl flex flex-col h-[80vh] border border-gray-200 dark:border-gray-700 animate-fade-in">
-            <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Selected Labourers</h3>
-                    <p class="text-xs text-red-500 mt-1 font-medium"><i class="fa-solid fa-square text-[10px] mr-1"></i> Red rows indicate duplicates/ambiguous matches.</p>
-                </div>
-                <button id="close-preview-top" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button>
-            </div>
-            
-            <div class="flex-1 overflow-auto p-0">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0">
-                        <tr>
-                            <th class="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Name</th>
-                            <th class="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Job Card</th>
-                            <th class="px-4 py-3 text-center w-20">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="preview-table-body" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
-                </table>
-            </div>
+<div class="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+    <button id="load-csv-btn"
+        class="w-full md:w-auto inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
+        <i class="fa-solid fa-play mr-2"></i> Load & Prepare Data
+    </button>
+    <p id="loading-message" class="hidden mt-2 text-sm text-blue-600 dark:text-blue-400 animate-pulse"><i
+            class="fa-solid fa-spinner fa-spin mr-1"></i> Processing files...</p>
+</div>
 
-            <div class="p-5 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
-                <button id="close-preview-btn" class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">Keep Editing</button>
-                <button id="download-from-preview-btn" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
-                    <i class="fa-solid fa-download mr-2"></i> Download CSV
+<div id="data-controls" class="hidden space-y-6">
+
+    <div
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div>
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Contractor Name</label>
+            <input type="text" id="contractor_name" placeholder="e.g., Suresh Singh"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Filter Village</label>
+            <select id="village-filter"
+                class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
+                <option value="all">All Villages</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                Search
+                <span id="search-selected-count" class="hidden text-green-600 dark:text-green-400 ml-1">(<strong
+                        id="search-selected-value">0</strong> selected)</span>
+            </label>
+            <div class="flex gap-2">
+                <input type="text" id="search_box" placeholder="Name or last digits..."
+                    class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-primary">
+                <button id="open-bulk-btn"
+                    class="px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded-lg text-sm font-medium transition-colors"
+                    title="Bulk Paste">
+                    <i class="fa-solid fa-bolt"></i>
                 </button>
             </div>
         </div>
     </div>
+
+    <div
+        class="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
+        <div id="table-scroll-container" class="overflow-auto table-scroll max-h-[60vh]">
+            <table id="applicant-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left w-12">
+                            <input type="checkbox" id="select-all-checkbox"
+                                class="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4">
+                        </th>
+                        <th scope="col"
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Applicant Name</th>
+                        <th scope="col"
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Job Card No.</th>
+                    </tr>
+                </thead>
+                <tbody id="applicant-table-body"
+                    class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
+        <div id="row-count-message" class="text-sm text-gray-500 dark:text-gray-400">
+            Total: <strong id="count-total" class="text-blue-600 dark:text-blue-400">0</strong>
+            <span id="count-deleted-span" class="hidden text-red-500 ml-2">Del: <strong
+                    id="count-deleted">0</strong></span>
+            <span id="count-matching-span" class="hidden text-orange-500 ml-2">Match: <strong
+                    id="count-matching">0</strong></span>
+            <span class="ml-2 text-green-600 dark:text-green-400">Selected: <strong
+                    id="count-selected">0</strong></span>
+        </div>
+        <div id="pagination-controls" class="flex gap-2"></div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button id="preview-btn"
+            class="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm transition-colors text-sm font-medium">
+            <i class="fa-solid fa-list-check mr-2"></i> Preview Selected
+        </button>
+        <button id="download-csv-btn"
+            class="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors text-sm font-medium">
+            <i class="fa-solid fa-download mr-2"></i> Download CSV
+        </button>
+        <button id="send-demand-btn"
+            class="flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition-colors text-sm font-medium">
+            <i class="fa-solid fa-paper-plane mr-2"></i> Send to Demand Gen
+        </button>
+        <button id="save-cloud-btn" type="button"
+            class="hidden flex-1 md:flex-none inline-flex justify-center items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+            <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Cloud Save
+        </button>
+        <button id="reset-btn" type="button"
+            class="md:ml-auto inline-flex justify-center items-center px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-900/20 dark:hover:bg-red-900/40 dark:text-red-300 rounded-lg transition-colors text-sm font-medium">
+            <i class="fa-solid fa-rotate-left mr-2"></i> Reset
+        </button>
+    </div>
+</div>
+
+<div id="bulk-modal"
+    class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+        class="bg-white dark:bg-dark-card w-full max-w-lg rounded-xl shadow-2xl flex flex-col max-h-[90vh] border border-gray-200 dark:border-gray-700 animate-fade-in">
+        <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-yellow-500"></i> Bulk Select Job Cards
+            </h3>
+            <p class="text-xs text-gray-500 mt-1">Paste numbers separated by space, comma or new line. e.g.
+                <code>660, 502</code></p>
+        </div>
+        <div class="p-5 flex-1">
+            <textarea id="bulk-textarea"
+                class="w-full h-32 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-sm font-mono focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                placeholder="Paste numbers here..."></textarea>
+            <div id="bulk-result-msg" class="mt-3 text-sm min-h-[1.5em]"></div>
+        </div>
+        <div
+            class="p-5 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+            <button id="close-bulk-btn"
+                class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">Cancel</button>
+            <button id="apply-bulk-btn"
+                class="px-4 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">Auto
+                Select Matches</button>
+        </div>
+    </div>
+</div>
+
+<div id="preview-modal"
+    class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+        class="bg-white dark:bg-dark-card w-full max-w-3xl rounded-xl shadow-2xl flex flex-col h-[80vh] border border-gray-200 dark:border-gray-700 animate-fade-in">
+        <div class="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">Selected Labourers</h3>
+                <p class="text-xs text-red-500 mt-1 font-medium"><i class="fa-solid fa-square text-[10px] mr-1"></i> Red
+                    rows indicate duplicates/ambiguous matches.</p>
+            </div>
+            <button id="close-preview-top" class="text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+        </div>
+
+        <div class="flex-1 overflow-auto p-0">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0">
+                    <tr>
+                        <th class="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Name</th>
+                        <th class="px-4 py-3 font-medium text-gray-500 dark:text-gray-400">Job Card</th>
+                        <th class="px-4 py-3 text-center w-20">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="preview-table-body" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+            </table>
+        </div>
+
+        <div
+            class="p-5 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+            <button id="close-preview-btn"
+                class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors">Keep
+                Editing</button>
+            <button id="download-from-preview-btn"
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+                <i class="fa-solid fa-download mr-2"></i> Download CSV
+            </button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Constants & Elements
+    // --- Constants & Elements ---
     const fileInput = document.getElementById('csv_file');
     const existingFileInput = document.getElementById('existing_file');
     const fileNameDisplay = document.getElementById('file-name');
@@ -240,10 +356,16 @@
     const statTotalEl = document.getElementById('stat-total');
     const statSelectedEl = document.getElementById('stat-selected');
     
-    // Cloud Buttons
+    // Cloud/Server Elements
     const chooseCloudBtn = document.getElementById('choose-cloud-btn');
     const chooseCloudExistingBtn = document.getElementById('choose-cloud-existing-btn');
     const saveCloudBtn = document.getElementById('save-cloud-btn');
+    
+    // Tabs & Server Select Elements
+    const tabUpload = document.getElementById('tab-upload');
+    const tabServer = document.getElementById('tab-server');
+    const sourceUpload = document.getElementById('source-upload');
+    const sourceServer = document.getElementById('source-server');
 
     let allRowsData = [];
     let filteredData = [];
@@ -252,23 +374,163 @@
     let masterFileContent = null;
     let existingFileContent = null;
 
-    // Initialization
+    // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
+        // Check Cloud Login Status
         if (typeof checkLoginStatus === 'function') {
             const isLoggedIn = await checkLoginStatus();
             if (isLoggedIn) {
-                chooseCloudBtn.classList.remove('hidden');
-                chooseCloudExistingBtn.classList.remove('hidden');
-                saveCloudBtn.classList.remove('hidden');
+                if(chooseCloudBtn) chooseCloudBtn.classList.remove('hidden');
+                if(chooseCloudExistingBtn) chooseCloudExistingBtn.classList.remove('hidden');
+                if(saveCloudBtn) saveCloudBtn.classList.remove('hidden');
             }
         }
     });
 
-    // File Handlers
+    // --- TAB SWITCHING LOGIC ---
+    if(tabUpload && tabServer) {
+        tabUpload.addEventListener('click', () => {
+            sourceUpload.classList.remove('hidden'); sourceServer.classList.add('hidden');
+            tabUpload.className = "px-3 py-1 bg-primary text-white rounded-md transition-colors";
+            tabServer.className = "px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors";
+        });
+
+        tabServer.addEventListener('click', async () => {
+            sourceServer.classList.remove('hidden'); sourceUpload.classList.add('hidden');
+            tabServer.className = "px-3 py-1 bg-primary text-white rounded-md transition-colors";
+            tabUpload.className = "px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md transition-colors";
+            await loadPublicLocations(); // Fetch dropdown data from server
+        });
+    }
+
+    // --- SERVER FILE SELECTION LOGIC ---
+    let publicDataStructure = {};
+    
+    async function loadPublicLocations() {
+        try {
+            // NregaBot-Tools ke naye server route se data layein
+            const res = await fetch('/api/public/locations');
+            if(!res.ok) throw new Error('Failed to fetch locations');
+            
+            publicDataStructure = await res.json();
+            
+            const selDist = document.getElementById('sel-district');
+            selDist.innerHTML = '<option value="">-- Select District --</option>';
+            Object.keys(publicDataStructure).sort().forEach(d => {
+                selDist.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        } catch(e) { 
+            console.error("Locations error:", e); 
+            // Silent fail or simple alert if needed
+        }
+    }
+
+    // Dropdown Chain: District -> Block -> File
+    const selDist = document.getElementById('sel-district');
+    const selBlock = document.getElementById('sel-block');
+    const selFile = document.getElementById('sel-file');
+    const btnFetchServer = document.getElementById('btn-fetch-server');
+
+    if(selDist) {
+        selDist.addEventListener('change', function() {
+            const dist = this.value;
+            selBlock.innerHTML = '<option value="">-- Block --</option>';
+            selBlock.disabled = !dist;
+            selFile.innerHTML = '<option value="">-- Panchayat File --</option>';
+            selFile.disabled = true;
+            btnFetchServer.disabled = true;
+            
+            if(dist && publicDataStructure[dist]) {
+                Object.keys(publicDataStructure[dist]).sort().forEach(b => {
+                    selBlock.innerHTML += `<option value="${b}">${b}</option>`;
+                });
+            }
+        });
+    }
+
+    if(selBlock) {
+        selBlock.addEventListener('change', function() {
+            const dist = selDist.value;
+            const block = this.value;
+            selFile.innerHTML = '<option value="">-- Panchayat File --</option>';
+            selFile.disabled = !block;
+            btnFetchServer.disabled = true;
+
+            if(dist && block && publicDataStructure[dist][block]) {
+                publicDataStructure[dist][block].sort().forEach(f => {
+                    
+                    // --- FILTER: Only show Jobcard files here ---
+                    if (!f.toLowerCase().includes('_jobcard.csv')) return;
+                    // --------------------------------------------
+
+                    // Filename clean display
+                    const cleanName = f.replace('_jobcard.csv','').replace('.csv','');
+                    selFile.innerHTML += `<option value="${f}">${cleanName}</option>`;
+                });
+            }
+        });
+    }
+
+    if(selFile) {
+        selFile.addEventListener('change', function() {
+            btnFetchServer.disabled = !this.value;
+        });
+    }
+
+    // Fetch File from Server Button
+    if(btnFetchServer) {
+        btnFetchServer.addEventListener('click', async () => {
+            const dist = selDist.value;
+            const block = selBlock.value;
+            const filename = selFile.value;
+            
+            const originalText = btnFetchServer.innerHTML;
+            btnFetchServer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+            btnFetchServer.disabled = true;
+            
+            try {
+                const res = await fetch('/api/public/get-file', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ district: dist, block: block, filename: filename })
+                });
+                
+                if(!res.ok) throw new Error("File fetch failed");
+                
+                const data = await res.json();
+                
+                if(data.content) {
+                    masterFileContent = data.content;
+                    fileNameDisplay.textContent = `Server: ${filename}`;
+                    fileNameDisplay.classList.remove('italic');
+                    fileNameDisplay.classList.add('text-primary', 'font-medium');
+                    
+                    // Auto-fill Panchayat name from filename (e.g. "PanchayatName_jobcard.csv")
+                    const pName = filename.split('_')[0];
+                    if(contractorNameInput && !contractorNameInput.value) {
+                        contractorNameInput.value = pName; 
+                    }
+
+                    // Automatically trigger "Load & Prepare"
+                    loadCsvBtn.click();
+                } else { 
+                    alert("File content is empty."); 
+                }
+            } catch(e) { 
+                alert("Error fetching file: " + e.message); 
+            } finally { 
+                btnFetchServer.innerHTML = originalText;
+                btnFetchServer.disabled = false;
+            }
+        });
+    }
+
+    // --- EXISTING FILE HANDLERS ---
     fileInput.addEventListener('change', () => {
         fileNameDisplay.textContent = fileInput.files[0] ? fileInput.files[0].name : 'No file chosen';
         masterFileContent = null; resetUI();
     });
+    
     existingFileInput.addEventListener('change', () => {
         if (existingFileInput.files.length > 0) {
             existingFileNameDisplay.textContent = existingFileInput.files[0].name;
@@ -278,7 +540,7 @@
         } else existingFileNameDisplay.textContent = 'No file chosen (New List)';
     });
 
-    // Main Processing
+    // --- MAIN PROCESSING LOGIC ---
     loadCsvBtn.addEventListener('click', async () => {
         loadingMessage.classList.remove('hidden');
         dataControls.classList.add('hidden');
@@ -286,7 +548,7 @@
             let masterText = "";
             if (masterFileContent) masterText = masterFileContent;
             else if (fileInput.files.length > 0) masterText = await readFileAsText(fileInput.files[0]);
-            else throw new Error("Please choose a Master Applicant List CSV file.");
+            else throw new Error("Please choose or upload a Master Applicant List CSV file.");
 
             let existingJobCards = new Set();
             if (existingFileContent) existingJobCards = parseExistingCsv(existingFileContent);
@@ -295,7 +557,10 @@
                 existingJobCards = parseExistingCsv(text);
             }
             processData(masterText, existingJobCards);
-        } catch (err) { alert(err.message); loadingMessage.classList.add('hidden'); }
+        } catch (err) { 
+            alert(err.message); 
+            loadingMessage.classList.add('hidden'); 
+        }
     });
 
     function processData(masterText, preSelectedJobCards) {
@@ -338,7 +603,7 @@
         
         if (allRowsData.length > 0) {
             dataControls.classList.remove('hidden');
-            document.getElementById('header-stats-container').classList.remove('hidden'); // Show header stats
+            document.getElementById('header-stats-container').classList.remove('hidden');
             currentPage = 1;
             setupPagination();
             displayPage(currentPage);
@@ -377,7 +642,7 @@
         currentPage = 1; setupPagination(); displayPage(currentPage); updateRowCount();
     }
 
-    // UI Updates
+    // --- UI DISPLAY & PAGINATION ---
     function displayPage(page) {
         currentPage = page; tableBody.innerHTML = '';
         if (filteredData.length === 0) { tableBody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">No data found.</td></tr>'; return; }
@@ -388,7 +653,6 @@
         
         paginatedItems.forEach(item => {
             const tr = document.createElement('tr');
-            // Using custom classes from <style> for state
             if (item.isDeleted) tr.classList.add('deleted-row');
             else if (item.selected) tr.classList.add('selected-row');
             
@@ -407,7 +671,6 @@
         });
         selectAllCheckbox.checked = false;
         
-        // Update pagination buttons state
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
         if(prevBtn) prevBtn.disabled = (currentPage === 1);
@@ -464,7 +727,7 @@
         tableBody.innerHTML = ''; allRowsData = []; filteredData = []; updateRowCount();
     }
 
-    // Event Listeners
+    // --- EVENT LISTENERS (Search, Filter, Checkbox) ---
     searchBox.addEventListener('keyup', filterData);
     villageFilter.addEventListener('change', filterData);
     
@@ -481,7 +744,7 @@
         const tr = e.target.closest('tr');
         if (!tr) return;
         const cb = tr.querySelector('.row-checkbox');
-        if (e.target !== cb) cb.checked = !cb.checked; // Toggle if clicking row
+        if (e.target !== cb) cb.checked = !cb.checked; 
         if (cb.disabled) return;
         
         const item = allRowsData.find(r => r.jobCard === cb.dataset.jobcard);
@@ -492,7 +755,7 @@
         }
     });
 
-    // Bulk Modal Logic
+    // --- BULK MODAL LOGIC ---
     document.getElementById('open-bulk-btn').addEventListener('click', () => { bulkModal.classList.remove('hidden'); bulkTextarea.value = ''; bulkResultMsg.textContent = ''; bulkTextarea.focus(); });
     document.getElementById('close-bulk-btn').addEventListener('click', () => bulkModal.classList.add('hidden'));
     document.getElementById('apply-bulk-btn').addEventListener('click', () => {
@@ -512,31 +775,65 @@
         bulkResultMsg.innerHTML = `<span class="text-green-600"><i class="fa-solid fa-check"></i> Found ${found}</span>` + (notFound ? `, <span class="text-red-500">Missing ${notFound}</span>` : '');
     });
 
-    // Preview Logic
-    document.getElementById('preview-btn').addEventListener('click', () => {
+    // --- PREVIEW & DELETE LOGIC (FIXED) ---
+    function renderPreviewTable() {
         const selected = allRowsData.filter(i => i.selected && !i.isDeleted);
-        if (!selected.length) return alert('No labourers selected.');
+        
+        // Auto-Close if empty
+        if (selected.length === 0) {
+            previewModal.classList.add('hidden');
+            return;
+        }
+
         previewTableBody.innerHTML = '';
-        selected.forEach((item, idx) => {
+        selected.forEach((item) => {
             const tr = document.createElement('tr');
             if (item.isAmbiguous) tr.classList.add('ambiguous-row');
-            tr.innerHTML = `<td class="px-4 py-2">${item.name}</td><td class="px-4 py-2 font-mono">${item.jobCard}</td><td class="px-4 py-2 text-center"><button onclick="removeFromPreview('${item.jobCard}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td>`;
+            tr.innerHTML = `
+                <td class="px-4 py-2">${item.name}</td>
+                <td class="px-4 py-2 font-mono">${item.jobCard}</td>
+                <td class="px-4 py-2 text-center">
+                    <button type="button" class="delete-btn text-red-500 hover:text-red-700" data-jobcard="${item.jobCard}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>`;
             previewTableBody.appendChild(tr);
         });
         previewModal.classList.remove('hidden');
+    }
+
+    // Event Delegation for Delete
+    previewTableBody.addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-btn');
+        if (btn) {
+            const jc = btn.dataset.jobcard;
+            removeFromPreview(jc);
+        }
     });
 
+    // Preview Button
+    document.getElementById('preview-btn').addEventListener('click', () => {
+        const selected = allRowsData.filter(i => i.selected && !i.isDeleted);
+        if (!selected.length) return alert('No labourers selected.');
+        renderPreviewTable();
+    });
+
+    // Remove Function (Safe for Duplicates)
     window.removeFromPreview = (jc) => {
-        const item = allRowsData.find(i => i.jobCard === jc);
-        if (item) { item.selected = false; item.isAmbiguous = false; }
-        document.getElementById('preview-btn').click(); // Refresh modal
-        filterData(); // Refresh bg table
+        const item = allRowsData.find(i => i.jobCard === jc && i.selected);
+        if (item) { 
+            item.selected = false; 
+            item.isAmbiguous = false; 
+        }
+        filterData(); 
+        renderPreviewTable(); 
     };
 
+    // Close Modal Listeners (Important Fix)
     document.getElementById('close-preview-btn').addEventListener('click', () => previewModal.classList.add('hidden'));
     document.getElementById('close-preview-top').addEventListener('click', () => previewModal.classList.add('hidden'));
     
-    // Download & Reset
+    // --- DOWNLOAD & ACTIONS ---
     document.getElementById('download-csv-btn').addEventListener('click', () => {
         const name = contractorNameInput.value.trim();
         if (!name) return alert('Enter Contractor Name');
@@ -559,19 +856,51 @@
         return '"Name of Applicant","Job Card Number"\r\n' + sel.map(i => `"${i.name}","${i.jobCard}"`).join('\r\n');
     }
 
-    // Cloud Logic
-    chooseCloudBtn.addEventListener('click', async () => {
-        const f = await loadFromCloud('Uploads/jobcards');
-        if(f) { masterFileContent = f.content; fileNameDisplay.textContent = f.filename; fileInput.value=''; resetUI(); }
-    });
-    chooseCloudExistingBtn.addEventListener('click', async () => {
-        const f = await loadFromCloud('Uploads/contractor_list');
-        if(f) { existingFileContent = f.content; existingFileNameDisplay.textContent = f.filename; existingFileInput.value=''; if(f.filename.includes('_labour_list')) contractorNameInput.value = f.filename.split('_labour_list')[0]; }
-    });
-    saveCloudBtn.addEventListener('click', async function() {
-        const name = contractorNameInput.value.trim();
-        if(!name) return alert('Enter Contractor Name');
-        await handleCloudSaveClick(() => getSelectedCsvContent(), 'Uploads/contractor_list', name + '_labour_list.csv', this);
-    });
+    // --- SEND TO DEMAND TOOL (NEW FEATURE) ---
+    const sendDemandBtn = document.getElementById('send-demand-btn');
+    if(sendDemandBtn) {
+        sendDemandBtn.addEventListener('click', () => {
+            const selected = allRowsData.filter(i => i.selected && !i.isDeleted);
+            if (!selected.length) return alert('No labourers selected.');
+
+            // 1. Prepare Data
+            const transferData = selected.map(i => ({
+                name: i.name,
+                card: i.jobCard
+            }));
+
+            // 2. Save to Session Storage
+            sessionStorage.setItem('nrega_demand_transfer', JSON.stringify(transferData));
+            // Panchayat ya Contractor Name as source
+            const sourceInfo = contractorNameInput.value || 'Contractor List';
+            sessionStorage.setItem('nrega_demand_source', sourceInfo);
+
+            // 3. Redirect
+            if(confirm(`Ready to transfer ${selected.length} labourers to Demand Generator?`)) {
+                window.location.href = "{{ url_for('demand_tool') }}";
+            }
+        });
+    }
+
+    // --- CLOUD LOGIC (Logged In User) ---
+    if(chooseCloudBtn) {
+        chooseCloudBtn.addEventListener('click', async () => {
+            const f = await loadFromCloud('Uploads/jobcards');
+            if(f) { masterFileContent = f.content; fileNameDisplay.textContent = f.filename; fileInput.value=''; resetUI(); }
+        });
+    }
+    if(chooseCloudExistingBtn) {
+        chooseCloudExistingBtn.addEventListener('click', async () => {
+            const f = await loadFromCloud('Uploads/contractor_list');
+            if(f) { existingFileContent = f.content; existingFileNameDisplay.textContent = f.filename; existingFileInput.value=''; if(f.filename.includes('_labour_list')) contractorNameInput.value = f.filename.split('_labour_list')[0]; }
+        });
+    }
+    if(saveCloudBtn) {
+        saveCloudBtn.addEventListener('click', async function() {
+            const name = contractorNameInput.value.trim();
+            if(!name) return alert('Enter Contractor Name');
+            await handleCloudSaveClick(() => getSelectedCsvContent(), 'Uploads/contractor_list', name + '_labour_list.csv', this);
+        });
+    }
 </script>
 {% endblock %}
