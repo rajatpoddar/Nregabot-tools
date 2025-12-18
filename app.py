@@ -379,47 +379,82 @@ def contractor_list():
 def scheme_extractor():
     if request.method == 'POST':
         raw_text = request.form.get('raw_text', '')
-        panchayat_name = request.form.get('panchayat', 'schemes').strip() # Panchayat name
+        panchayat_name = request.form.get('panchayat', 'Scheme_List')
         
-        if not raw_text:
-            flash("No text provided", "error")
-            return redirect(url_for('scheme_extractor'))
-
-        # Regex Update: 
-        # 1. re.DOTALL जोड़ा गया है ताकि मल्टी-लाइन नाम (जैसे PMAY वाले) भी कैप्चर हो सकें।
-        # 2. कोड पैटर्न को (?:/[A-Z]+)+ किया गया है ताकि /IF/YD/ जैसे एक्स्ट्रा हिस्सों को भी सपोर्ट मिले।
-        pattern = re.compile(r'(?:^\d+\s*|\n\d+\s*)?(.*?)\s*(\(34\d{8}(?:/[A-Z]+)+/\d+\))', re.DOTALL)
-        matches = pattern.findall(raw_text)
+        data = []
         
-        if not matches:
-            flash("No valid schemes found in text.", "error")
-            return redirect(url_for('scheme_extractor'))
-
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerow(['Scheme Name', 'Work Code'])
+        # 1. Updated Code Pattern (Handles 'IAY' and standard codes)
+        # यह पैटर्न (.../IF/IAY/...) और (.../IF/...) दोनों को पकड़ लेगा
+        code_pattern = r'\((?P<code>\d+/[A-Z]+/(?:[A-Z]+/)?\w+)\)'
         
-        count = 0
-        for name, code in matches:
-            # नाम से एक्स्ट्रा स्पेस और लाइन ब्रेक हटाना
-            clean_name = re.sub(r'\s+', ' ', name.strip())
-            # अगर नाम के शुरू में कोई सीरियल नंबर बच गया हो तो हटाना
-            clean_name = re.sub(r'^\d+\s+', '', clean_name)
+        segments = re.split(code_pattern, raw_text)
+        
+        # 2. Comprehensive Garbage Markers (Categories + Headers + Status)
+        # ये वो शब्द हैं जो Name में नहीं आने चाहिए
+        categories = [
+            r'Works on Individuals Land(?:\s*\(Category [IVX]+\))?',
+            r'Anganwadi/Other Rural Infrastructure',
+            r'Coastal Areas',
+            r'Drought Proofing',
+            r'Rural Drinking Water',
+            r'Food Grain',
+            r'Flood Control and Protection',
+            r'Fisheries',
+            r'Micro Irrigation Works',
+            r'Provision of Irrigation facility[^0-9]+', # Long category name handle
+            r'Land Development',
+            r'Other Works',
+            r'Play Ground',
+            r'Rural Connectivity',
+            r'Rural Sanitation',
+            r'Bharat Nirman Sewa Kendra',
+            r'Water Conservation and Water Harvesting',
+            r'Renovation of traditional water bodies'
+        ]
+        
+        # Add Header columns and Status keywords
+        garbage_markers = categories + [
+            r'On Going', r'Completed', r'Approved', r'Suspended', r'New',
+            r'\d{4}-\d{4}', # Financial Year (e.g. 2024-2025)
+            r'Asset Id', r'Priority', r'Work Category', r'S No\.', # Header columns
+            r'Financial Year', r'Work Status'
+        ]
+        
+        garbage_pattern = '|'.join(garbage_markers)
+        
+        # Loop through segments (Code is always at odd index: 1, 3, 5...)
+        for i in range(1, len(segments), 2):
+            code = segments[i]
+            raw_chunk = segments[i-1] # Code से पहले का टेक्स्ट
             
-            clean_code = code.replace('(', '').replace(')', '').strip()
-            writer.writerow([clean_name, clean_code])
-            count += 1
-
-        output.seek(0)
+            # 3. Cleaning Logic
+            # Garbage markers से split करें और सबसे आखिरी हिस्सा (Last Part) उठाएं, 
+            # क्योंकि Work Name हमेशा इन सबके बाद होता है।
+            parts = re.split(garbage_pattern, raw_chunk, flags=re.IGNORECASE)
+            
+            if parts:
+                potential_name = parts[-1]
+                
+                # Starting में अगर कोई नंबर या सिंबल है तो उसे हटाएं
+                # यह Priority और Serial No (जैसे 2092) को हटा देगा जो नाम के साथ चिपके होते हैं
+                clean_name = re.sub(r'^[\s\d\.\-\)]+', '', potential_name).strip()
+                
+                # अगर नाम बहुत छोटा नहीं है, तो लिस्ट में जोड़ें
+                if clean_name and len(clean_name) > 2:
+                    data.append([clean_name, code])
         
-        filename = f"{panchayat_name}_schemes_{count}.csv"
+        # Create CSV Output
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['Work Name', 'Work Code'])
+        cw.writerows(data)
         
         return Response(
-            output,
+            si.getvalue(),
             mimetype="text/csv",
-            headers={"Content-Disposition": f"attachment;filename={filename}"}
+            headers={"Content-disposition": f"attachment; filename={panchayat_name}_schemes.csv"}
         )
-
+        
     return render_template('scheme_extractor.html')
 
 # --- UPDATED: Demand Tool ---
