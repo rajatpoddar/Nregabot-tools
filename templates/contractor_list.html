@@ -408,7 +408,6 @@
     
     async function loadPublicLocations() {
         try {
-            // NregaBot-Tools ke naye server route se data layein
             const res = await fetch('/api/public/locations');
             if(!res.ok) throw new Error('Failed to fetch locations');
             
@@ -421,7 +420,6 @@
             });
         } catch(e) { 
             console.error("Locations error:", e); 
-            // Silent fail or simple alert if needed
         }
     }
 
@@ -458,12 +456,7 @@
 
             if(dist && block && publicDataStructure[dist][block]) {
                 publicDataStructure[dist][block].sort().forEach(f => {
-                    
-                    // --- FILTER: Only show Jobcard files here ---
                     if (!f.toLowerCase().includes('_jobcard.csv')) return;
-                    // --------------------------------------------
-
-                    // Filename clean display
                     const cleanName = f.replace('_jobcard.csv','').replace('.csv','');
                     selFile.innerHTML += `<option value="${f}">${cleanName}</option>`;
                 });
@@ -505,13 +498,11 @@
                     fileNameDisplay.classList.remove('italic');
                     fileNameDisplay.classList.add('text-primary', 'font-medium');
                     
-                    // Auto-fill Panchayat name from filename (e.g. "PanchayatName_jobcard.csv")
                     const pName = filename.split('_')[0];
                     if(contractorNameInput && !contractorNameInput.value) {
                         contractorNameInput.value = pName; 
                     }
 
-                    // Automatically trigger "Load & Prepare"
                     loadCsvBtn.click();
                 } else { 
                     alert("File content is empty."); 
@@ -568,6 +559,7 @@
         const villageSet = new Set();
         const rows = masterText.split(/\r?\n/).filter(row => row.trim() !== '');
         
+        // Loop start from 1 to skip header
         for (let i = 1; i < rows.length; i++) {
             const cols = rows[i].split(',').map(col => col.trim().replace(/"/g, ''));
             if (cols.length >= 2 && cols[0] && cols[1]) {
@@ -590,7 +582,9 @@
                 }
                 if (villageCode !== "Unknown") villageSet.add(villageCode);
 
+                // **UPDATED:** Unique ID (index 'i') added to ensure duplicates are handled correctly
                 allRowsData.push({ 
+                    id: i,
                     name: originalName, jobCard: jobCardFull, jobCardShort, jobCardSuffix: lastPart, 
                     villageCode, selected: isSelected, isDeleted, isAmbiguous: false
                 });
@@ -658,8 +652,9 @@
             
             tr.className += ' hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer';
 
+            // **UPDATED:** Using data-rowid instead of jobcard string
             tr.innerHTML = `
-                <td class="px-4 py-3"><input type="checkbox" class="row-checkbox rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" data-jobcard="${item.jobCard}" ${item.selected ? 'checked' : ''} ${item.isDeleted ? 'disabled' : ''}></td>
+                <td class="px-4 py-3"><input type="checkbox" class="row-checkbox rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" data-rowid="${item.id}" ${item.selected ? 'checked' : ''} ${item.isDeleted ? 'disabled' : ''}></td>
                 <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">${item.name}</td>
                 <td class="px-4 py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">
                     <span class="hidden md:inline">${item.jobCard}</span>
@@ -669,7 +664,10 @@
             `;
             tableBody.appendChild(tr);
         });
-        selectAllCheckbox.checked = false;
+        
+        // Reset check-all based on current page visibility
+        const allVisibleSelected = paginatedItems.every(i => i.selected || i.isDeleted);
+        selectAllCheckbox.checked = paginatedItems.length > 0 && allVisibleSelected;
         
         const prevBtn = document.getElementById('prev-page-btn');
         const nextBtn = document.getElementById('next-page-btn');
@@ -735,7 +733,13 @@
         const start = (currentPage - 1) * rowsPerPage;
         const end = start + rowsPerPage;
         const items = filteredData.slice(start, end);
-        items.forEach(item => { if (!item.isDeleted) allRowsData.find(r => r.jobCard === item.jobCard).selected = selectAllCheckbox.checked; });
+        items.forEach(item => { 
+            if (!item.isDeleted) {
+                // Find original item by ID to toggle
+                const originalItem = allRowsData.find(r => r.id === item.id);
+                if(originalItem) originalItem.selected = selectAllCheckbox.checked; 
+            }
+        });
         displayPage(currentPage); updateRowCount();
     });
 
@@ -747,7 +751,10 @@
         if (e.target !== cb) cb.checked = !cb.checked; 
         if (cb.disabled) return;
         
-        const item = allRowsData.find(r => r.jobCard === cb.dataset.jobcard);
+        // **UPDATED:** Toggle selection using ID
+        const rowId = parseInt(cb.dataset.rowid);
+        const item = allRowsData.find(r => r.id === rowId);
+        
         if (item) {
             item.selected = cb.checked;
             tr.classList.toggle('selected-row', cb.checked);
@@ -764,6 +771,7 @@
         const village = villageFilter.value;
         
         inputs.forEach(input => {
+            // Bulk matching still uses string comparison, which is correct
             let matches = allRowsData.filter(i => !i.isDeleted && (village === 'all' || i.villageCode === village) && (i.jobCardShort === input || i.jobCardSuffix === input || i.jobCard === input));
             if (matches.length) {
                 found++;
@@ -775,7 +783,7 @@
         bulkResultMsg.innerHTML = `<span class="text-green-600"><i class="fa-solid fa-check"></i> Found ${found}</span>` + (notFound ? `, <span class="text-red-500">Missing ${notFound}</span>` : '');
     });
 
-    // --- PREVIEW & DELETE LOGIC (FIXED) ---
+    // --- UPDATED PREVIEW & DELETE LOGIC ---
     function renderPreviewTable() {
         const selected = allRowsData.filter(i => i.selected && !i.isDeleted);
         
@@ -789,11 +797,13 @@
         selected.forEach((item) => {
             const tr = document.createElement('tr');
             if (item.isAmbiguous) tr.classList.add('ambiguous-row');
+            
+            // **UPDATED:** Button stores unique ID
             tr.innerHTML = `
                 <td class="px-4 py-2">${item.name}</td>
                 <td class="px-4 py-2 font-mono">${item.jobCard}</td>
                 <td class="px-4 py-2 text-center">
-                    <button type="button" class="delete-btn text-red-500 hover:text-red-700" data-jobcard="${item.jobCard}">
+                    <button type="button" class="delete-btn text-red-500 hover:text-red-700" data-rowid="${item.id}">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>`;
@@ -806,8 +816,9 @@
     previewTableBody.addEventListener('click', function(e) {
         const btn = e.target.closest('.delete-btn');
         if (btn) {
-            const jc = btn.dataset.jobcard;
-            removeFromPreview(jc);
+            // **UPDATED:** Get ID to delete
+            const rowId = parseInt(btn.dataset.rowid);
+            removeFromPreview(rowId);
         }
     });
 
@@ -818,18 +829,25 @@
         renderPreviewTable();
     });
 
-    // Remove Function (Safe for Duplicates)
-    window.removeFromPreview = (jc) => {
-        const item = allRowsData.find(i => i.jobCard === jc && i.selected);
+    // **UPDATED:** Remove Function uses ID
+    window.removeFromPreview = (rowId) => {
+        const item = allRowsData.find(i => i.id === rowId);
         if (item) { 
             item.selected = false; 
             item.isAmbiguous = false; 
         }
-        filterData(); 
-        renderPreviewTable(); 
+        
+        // Refresh UI
+        renderPreviewTable();
+        // Background list ko bhi refresh karein
+        updateRowCount();
+        // Agar current page par wo item hai to checkbox update karein
+        if (filteredData.includes(item)) {
+             displayPage(currentPage);
+        }
     };
 
-    // Close Modal Listeners (Important Fix)
+    // Close Modal Listeners
     document.getElementById('close-preview-btn').addEventListener('click', () => previewModal.classList.add('hidden'));
     document.getElementById('close-preview-top').addEventListener('click', () => previewModal.classList.add('hidden'));
     
@@ -856,26 +874,22 @@
         return '"Name of Applicant","Job Card Number"\r\n' + sel.map(i => `"${i.name}","${i.jobCard}"`).join('\r\n');
     }
 
-    // --- SEND TO DEMAND TOOL (NEW FEATURE) ---
+    // --- SEND TO DEMAND TOOL ---
     const sendDemandBtn = document.getElementById('send-demand-btn');
     if(sendDemandBtn) {
         sendDemandBtn.addEventListener('click', () => {
             const selected = allRowsData.filter(i => i.selected && !i.isDeleted);
             if (!selected.length) return alert('No labourers selected.');
 
-            // 1. Prepare Data
             const transferData = selected.map(i => ({
                 name: i.name,
                 card: i.jobCard
             }));
 
-            // 2. Save to Session Storage
             sessionStorage.setItem('nrega_demand_transfer', JSON.stringify(transferData));
-            // Panchayat ya Contractor Name as source
             const sourceInfo = contractorNameInput.value || 'Contractor List';
             sessionStorage.setItem('nrega_demand_source', sourceInfo);
 
-            // 3. Redirect
             if(confirm(`Ready to transfer ${selected.length} labourers to Demand Generator?`)) {
                 window.location.href = "{{ url_for('demand_tool') }}";
             }
