@@ -29,15 +29,16 @@
         /* Strict A4 Page Rules */
         @page {
             size: A4;
-            margin: 0; /* Browser ke default headers/footers hatane ke liye */
+            margin: 0; /* Browser default headers/footers remove karne ke liye */
         }
 
         @media print {
             html, body {
                 width: 210mm;
-                height: 297mm;
+                height: 100%; /* Auto adjust */
                 margin: 0;
                 padding: 0;
+                overflow: hidden; /* Extra page rokne ke liye sabse zaruri */
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
             }
@@ -49,7 +50,8 @@
             /* Main Page Container */
             .page-container {
                 width: 210mm !important;
-                height: 296mm !important; /* 1mm buffer safety ke liye */
+                /* Height ko 296mm se ghata kar 285mm kiya gaya hai taaki mobile margins adjust ho sakein */
+                height: 285mm !important; 
                 margin: 0 auto !important;
                 padding: 10mm 15mm !important; 
                 box-sizing: border-box;
@@ -73,12 +75,12 @@
                 vertical-align: middle;
                 border: 1px solid black;
                 font-size: 10pt !important;
-                height: 8mm !important; /* Fixed height ~30px per row to fit 20 rows */
-                white-space: nowrap; /* Prevent wrapping from breaking height */
+                height: 8mm !important; /* Fixed height ~30px per row */
+                white-space: nowrap; /* Prevent wrapping */
                 overflow: hidden;
             }
             
-            /* Allow name wrapping if strictly needed, but keep height constraint */
+            /* Allow name wrapping if strictly needed */
             td.name-cell {
                 white-space: normal;
                 line-height: 1.1;
@@ -96,7 +98,7 @@
             Print Demand (A4)
         </button>
         <div class="bg-yellow-100 text-yellow-800 text-xs p-2 rounded border border-yellow-300 max-w-[200px]">
-            <strong>Tip:</strong> Ensure Scale is 100% and Paper Size is A4 in print settings.
+            <strong>Tip:</strong> Ensure Scale is 100% and Paper Size is A4.
         </div>
     </div>
 
