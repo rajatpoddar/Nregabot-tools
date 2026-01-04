@@ -11,8 +11,28 @@
         </div>
         <div class="ml-3">
             <p class="text-sm text-blue-700 dark:text-blue-300">
-                <strong>Instructions:</strong> Upload 'Scheme List' CSV (from Extractor) and 'Labour List' CSV. Then select a scheme and add labourers to generate print-ready demand forms.
+                <strong>Instructions:</strong> Select Location & Files. The Panchayat Name will auto-fill from the Scheme file. Use "Individual Mode" to select specific labourers and see family suggestions.
             </p>
+        </div>
+    </div>
+</div>
+
+<div class="mb-6 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+    <h3 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">
+        <i class="fa-solid fa-map-location-dot mr-2"></i> Global Location Settings
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">District</label>
+            <select id="global-sel-dist" class="w-full p-2 text-sm border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary">
+                <option value="">-- Select District --</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Block</label>
+            <select id="global-sel-block" disabled class="w-full p-2 text-sm border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary">
+                <option value="">-- Select Block --</option>
+            </select>
         </div>
     </div>
 </div>
@@ -20,10 +40,10 @@
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
     
     <div>
-        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">1. Select Scheme List (CSV)</label>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">1. Select Scheme List</label>
         
         <div class="flex gap-2 mb-3 text-xs">
-            <button type="button" id="tab-scheme-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload</button>
+            <button type="button" id="tab-scheme-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload CSV</button>
             <button type="button" id="tab-scheme-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
         </div>
 
@@ -38,11 +58,10 @@
         </div>
 
         <div id="source-scheme-server" class="hidden space-y-2">
-            <select id="scheme-sel-dist" class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- District --</option></select>
-            <div class="flex gap-2">
-                <select id="scheme-sel-block" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- Block --</option></select>
-                <select id="scheme-sel-file" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- File --</option></select>
-            </div>
+            <div class="text-xs text-gray-500 mb-1">Select a file from the chosen Block:</div>
+            <select id="scheme-sel-file" disabled class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white">
+                <option value="">-- Select Scheme File --</option>
+            </select>
             <button type="button" id="btn-load-scheme-server" disabled class="w-full py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Scheme List</button>
         </div>
 
@@ -55,10 +74,10 @@
     </div>
 
     <div>
-        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List (CSV)</label>
+        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List</label>
         
         <div class="flex gap-2 mb-3 text-xs">
-            <button type="button" id="tab-labour-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload</button>
+            <button type="button" id="tab-labour-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload CSV</button>
             <button type="button" id="tab-labour-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
         </div>
 
@@ -73,11 +92,10 @@
         </div>
 
         <div id="source-labour-server" class="hidden space-y-2">
-            <select id="labour-sel-dist" class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- District --</option></select>
-            <div class="flex gap-2">
-                <select id="labour-sel-block" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- Block --</option></select>
-                <select id="labour-sel-file" disabled class="w-1/2 p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white"><option value="">-- File --</option></select>
-            </div>
+            <div class="text-xs text-gray-500 mb-1">Select a file from the chosen Block:</div>
+            <select id="labour-sel-file" disabled class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white">
+                <option value="">-- Select Labour File --</option>
+            </select>
             <button type="button" id="btn-load-labour-server" disabled class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Labour List</button>
         </div>
 
@@ -94,43 +112,63 @@
     <input type="hidden" name="scheme_full_name" id="hidden_scheme_name">
     <input type="hidden" name="work_code" id="hidden_work_code">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-        <div>
-            <label for="panchayat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Panchayat Name</label>
-            <input type="text" name="panchayat" id="panchayat" placeholder="e.g., Palojori" required
-                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm">
+    <div>
+        <label for="panchayat" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Panchayat Name (Auto-filled)</label>
+        <input type="text" name="panchayat" id="panchayat" placeholder="Select scheme file to auto-fill" required
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary shadow-sm" readonly>
+    </div>
+
+    <div class="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div class="flex gap-4 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <button type="button" id="mode-batch" class="text-sm font-bold text-primary border-b-2 border-primary pb-1">Batch Mode</button>
+            <button type="button" id="mode-individual" class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 pb-1">Select Individual</button>
         </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Labours (Batch Size)</label>
+        <div id="panel-batch" class="block animate-fade-in">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Next Batch of Labours</label>
             <div class="flex items-center">
                 <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-800 mr-4">
-                    <button type="button" onclick="adjustCount(-1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
-                        <i class="fa-solid fa-minus text-xs"></i>
-                    </button>
+                    <button type="button" onclick="adjustCount(-1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-minus text-xs"></i></button>
                     <input type="number" id="labour_count" value="10" min="1" max="20" class="w-12 text-center border-none focus:ring-0 p-0 text-gray-900 dark:text-white font-semibold bg-transparent">
-                    <button type="button" onclick="adjustCount(1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                    </button>
+                    <button type="button" onclick="adjustCount(1)" class="px-3 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-plus text-xs"></i></button>
                 </div>
-                
-                <button type="button" id="btn-add-labours" class="flex-1 inline-flex justify-center items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors text-sm font-medium">
-                    <i class="fa-solid fa-user-plus mr-2"></i> Add Batch
+                <button type="button" id="btn-add-batch" class="flex-1 inline-flex justify-center items-center px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg transition-colors text-sm font-medium">
+                    <i class="fa-solid fa-layer-group mr-2"></i> Add Batch
                 </button>
+            </div>
+        </div>
+
+        <div id="panel-individual" class="hidden animate-fade-in">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search & Select Labour (Type Name or JC)</label>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="labour-search-input" list="labour-datalist" placeholder="Start typing name or job card..." 
+                    class="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500">
+                <datalist id="labour-datalist">
+                    </datalist>
+                
+                <button type="button" id="btn-add-individual" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg whitespace-nowrap">
+                    <i class="fa-solid fa-plus"></i> Add
+                </button>
+            </div>
+
+            <div id="suggestions-box" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
+                <div class="text-xs font-bold text-yellow-800 dark:text-yellow-200 mb-2 uppercase tracking-wide">
+                    <i class="fa-solid fa-people-group mr-1"></i> Suggested (Family/Neighbors)
+                </div>
+                <div id="suggestions-list" class="space-y-2">
+                    </div>
             </div>
         </div>
     </div>
 
-    <hr class="border-gray-200 dark:border-gray-700">
-
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center mt-6">
         <h3 id="form-preview-title" class="text-lg font-bold text-gray-800 dark:text-gray-100">Form Preview (0 Labours)</h3>
         <button type="button" id="btn-reset-labours" class="text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
             <i class="fa-solid fa-trash mr-1"></i> Reset Queue
         </button>
     </div>
 
-    <div id="scheme-preview-text" class="hidden bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded-r-lg">
+    <div id="scheme-preview-text" class="hidden bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-4">
         <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
             <div>
                 <div class="text-xs uppercase tracking-wider text-indigo-500 font-bold mb-1">Selected Scheme</div>
@@ -155,169 +193,36 @@
                     </tr>
                 </thead>
                 <tbody id="labour-tbody" class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                    </tbody>
+                </tbody>
             </table>
         </div>
     </div>
 
-    <div class="pt-4">
-        <button type="submit" class="w-full md:w-auto inline-flex justify-center items-center px-8 py-3 bg-primary hover:bg-blue-700 text-white text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-            <i class="fa-solid fa-print mr-2"></i> Generate Print View
+    <div class="pt-4 flex flex-col md:flex-row gap-4">
+        <button type="submit" onclick="autoSaveDemand()" class="w-full md:w-auto inline-flex justify-center items-center px-8 py-3 bg-primary hover:bg-blue-700 text-white text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-print mr-2"></i> Generate & Download
         </button>
     </div>
 </form>
 
 <script>
-    // --- Global State ---
+    // --- GLOBAL STATE ---
     let schemes = [];
     let allLabours = [];
     let currentLabourIndex = 0;
     let publicDataStructure = {};
+    let currentMode = 'batch';
+    let lastSearchedIndex = -1; // Track for suggestions
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
-        // 1. Check for Auto-Load Transfer
-        const transferData = sessionStorage.getItem('nrega_demand_transfer');
-        if (transferData) {
-            try {
-                const labourers = JSON.parse(transferData);
-                const sourceName = sessionStorage.getItem('nrega_demand_source') || 'Contractor List';
-                
-                if (confirm(`Import ${labourers.length} labourers from "${sourceName}"?`)) {
-                    allLabours = labourers;
-                    currentLabourIndex = 0;
-                    document.getElementById('labour-file-name').textContent = "Imported from Contractor List";
-                    document.getElementById('labour-file-name').classList.remove('italic');
-                    document.getElementById('labour-file-name').classList.add('text-green-600', 'font-bold');
-                    document.getElementById('labour-stats').classList.remove('hidden');
-                    updateStats();
-                    setTimeout(() => document.getElementById('btn-add-labours').click(), 500);
-                }
-            } catch(e) { console.error("Transfer error", e); }
-            sessionStorage.removeItem('nrega_demand_transfer');
-        }
-
-        // 2. Fetch Server Locations
         await initServerData();
+        setupModeToggles();
+        setupTabs('scheme'); // RESTORED
+        setupTabs('labour'); // RESTORED
     });
 
-    // --- SERVER DATA LOGIC ---
-    async function initServerData() {
-        try {
-            const res = await fetch('/api/public/locations');
-            if(res.ok) {
-                publicDataStructure = await res.json();
-                populateDistricts('scheme');
-                populateDistricts('labour');
-            }
-        } catch(e) { console.error("Location fetch failed", e); }
-    }
-
-    function populateDistricts(prefix) {
-        const sel = document.getElementById(`${prefix}-sel-dist`);
-        if(!sel) return;
-        sel.innerHTML = '<option value="">-- District --</option>';
-        Object.keys(publicDataStructure).sort().forEach(d => {
-            sel.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-    }
-
-    function setupServerDropdowns(prefix) {
-        const distSel = document.getElementById(`${prefix}-sel-dist`);
-        const blockSel = document.getElementById(`${prefix}-sel-block`);
-        const fileSel = document.getElementById(`${prefix}-sel-file`);
-        const loadBtn = document.getElementById(`btn-load-${prefix}-server`);
-
-        if(!distSel) return;
-
-        distSel.addEventListener('change', function() {
-            const dist = this.value;
-            blockSel.innerHTML = '<option value="">-- Block --</option>';
-            blockSel.disabled = !dist;
-            fileSel.innerHTML = '<option value="">-- File --</option>';
-            fileSel.disabled = true;
-            loadBtn.disabled = true;
-            
-            if(dist && publicDataStructure[dist]) {
-                Object.keys(publicDataStructure[dist]).sort().forEach(b => {
-                    blockSel.innerHTML += `<option value="${b}">${b}</option>`;
-                });
-            }
-        });
-
-        blockSel.addEventListener('change', function() {
-            const dist = distSel.value;
-            const block = this.value;
-            fileSel.innerHTML = '<option value="">-- File --</option>';
-            fileSel.disabled = !block;
-            loadBtn.disabled = true;
-
-            if(dist && block && publicDataStructure[dist][block]) {
-                publicDataStructure[dist][block].sort().forEach(f => {
-                    // --- NEW FILTERING LOGIC ---
-                    // Scheme wale dropdown me sirf _schemes.csv dikhe
-                    if (prefix === 'scheme' && !f.toLowerCase().includes('_schemes.csv')) return;
-                    
-                    // Labour wale dropdown me sirf _jobcard.csv dikhe
-                    if (prefix === 'labour' && !f.toLowerCase().includes('_jobcard.csv')) return;
-                    // ---------------------------
-
-                    // Clean filename for display
-                    const cleanName = f.replace('_jobcard.csv','').replace('_schemes.csv','').replace('.csv','');
-                    fileSel.innerHTML += `<option value="${f}">${cleanName}</option>`;
-                });
-            }
-        });
-
-        fileSel.addEventListener('change', function() {
-            loadBtn.disabled = !this.value;
-        });
-
-        loadBtn.addEventListener('click', () => fetchServerFile(prefix));
-    }
-
-    async function fetchServerFile(prefix) {
-        const dist = document.getElementById(`${prefix}-sel-dist`).value;
-        const block = document.getElementById(`${prefix}-sel-block`).value;
-        const fname = document.getElementById(`${prefix}-sel-file`).value;
-        const btn = document.getElementById(`btn-load-${prefix}-server`);
-        
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
-        btn.disabled = true;
-
-        try {
-            const res = await fetch('/api/public/get-file', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ district: dist, block: block, filename: fname })
-            });
-            const data = await res.json();
-            
-            if(data.content) {
-                if(prefix === 'scheme') processSchemeCSV(data.content, `Server: ${fname}`);
-                else processLabourCSV(data.content, `Server: ${fname}`);
-                
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Loaded!';
-            } else { 
-                alert('File empty'); 
-                btn.innerHTML = originalText;
-            }
-        } catch(e) { 
-            alert('Error loading file'); 
-            btn.innerHTML = originalText;
-        } finally {
-            setTimeout(() => { 
-                if(btn.innerHTML.includes('Loaded')) btn.innerHTML = originalText; 
-                btn.disabled = false; 
-            }, 2000);
-        }
-    }
-
-    setupServerDropdowns('scheme');
-    setupServerDropdowns('labour');
-
-    // --- TAB SWITCHING LOGIC ---
+    // --- TAB LOGIC (RESTORED) ---
     function setupTabs(prefix) {
         const tUp = document.getElementById(`tab-${prefix}-upload`);
         const tSv = document.getElementById(`tab-${prefix}-server`);
@@ -339,11 +244,129 @@
         });
     }
 
-    setupTabs('scheme');
-    setupTabs('labour');
+    // --- SERVER DATA LOGIC ---
+    async function initServerData() {
+        try {
+            const res = await fetch('/api/public/locations');
+            if(res.ok) {
+                publicDataStructure = await res.json();
+                populateGlobalDistricts();
+            }
+        } catch(e) { console.error("Location fetch failed", e); }
+    }
+
+    function populateGlobalDistricts() {
+        const sel = document.getElementById('global-sel-dist');
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- Select District --</option>';
+        Object.keys(publicDataStructure).sort().forEach(d => {
+            sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        sel.addEventListener('change', onGlobalDistrictChange);
+        document.getElementById('global-sel-block').addEventListener('change', onGlobalBlockChange);
+    }
+
+    function onGlobalDistrictChange() {
+        const dist = this.value;
+        const blockSel = document.getElementById('global-sel-block');
+        blockSel.innerHTML = '<option value="">-- Select Block --</option>';
+        blockSel.disabled = !dist;
+        resetFileDropdowns();
+        if(dist && publicDataStructure[dist]) {
+            Object.keys(publicDataStructure[dist]).sort().forEach(b => {
+                blockSel.innerHTML += `<option value="${b}">${b}</option>`;
+            });
+        }
+    }
+
+    function onGlobalBlockChange() {
+        const dist = document.getElementById('global-sel-dist').value;
+        const block = this.value;
+        updateFileDropdown('scheme', dist, block);
+        updateFileDropdown('labour', dist, block);
+    }
+
+    function updateFileDropdown(type, dist, block) {
+        const fileSel = document.getElementById(`${type}-sel-file`);
+        const loadBtn = document.getElementById(`btn-load-${type}-server`);
+        
+        fileSel.innerHTML = `<option value="">-- Select ${type === 'scheme' ? 'Scheme' : 'Labour'} File --</option>`;
+        fileSel.disabled = !block;
+        loadBtn.disabled = true;
+
+        if(dist && block && publicDataStructure[dist][block]) {
+            publicDataStructure[dist][block].sort().forEach(f => {
+                if (type === 'scheme' && !f.toLowerCase().includes('_schemes.csv')) return;
+                if (type === 'labour' && !f.toLowerCase().includes('_jobcard.csv')) return;
+                const cleanName = f.replace('_jobcard.csv','').replace('_schemes.csv','').replace('.csv','');
+                fileSel.innerHTML += `<option value="${f}">${cleanName}</option>`;
+            });
+        }
+        
+        fileSel.onchange = function() { 
+            loadBtn.disabled = !this.value; 
+            if(type === 'scheme' && this.value) {
+                const parts = this.value.split('_');
+                if(parts.length > 0) document.getElementById('panchayat').value = parts[0];
+            }
+        };
+        loadBtn.onclick = () => fetchServerFile(type, dist, block, fileSel.value);
+    }
+
+    function resetFileDropdowns() {
+        ['scheme', 'labour'].forEach(type => {
+            const el = document.getElementById(`${type}-sel-file`);
+            el.innerHTML = `<option value="">-- Select File --</option>`;
+            el.disabled = true;
+            document.getElementById(`btn-load-${type}-server`).disabled = true;
+        });
+    }
+
+    async function fetchServerFile(prefix, dist, block, fname) {
+        const btn = document.getElementById(`btn-load-${prefix}-server`);
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/public/get-file', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ district: dist, block: block, filename: fname })
+            });
+            const data = await res.json();
+            
+            if(data.content) {
+                if(prefix === 'scheme') processSchemeCSV(data.content, `Server: ${fname}`);
+                else processLabourCSV(data.content, `Server: ${fname}`);
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Loaded!';
+            } else { alert('File empty'); btn.innerHTML = originalText; }
+        } catch(e) { alert('Error loading file'); btn.innerHTML = originalText; } 
+        finally { setTimeout(() => { if(btn.innerHTML.includes('Loaded')) btn.innerHTML = originalText; btn.disabled = false; }, 2000); }
+    }
+
+    // --- MODE TOGGLES ---
+    function setupModeToggles() {
+        document.getElementById('mode-batch').addEventListener('click', function() {
+            currentMode = 'batch';
+            document.getElementById('panel-batch').classList.remove('hidden'); 
+            document.getElementById('panel-individual').classList.add('hidden');
+            this.className = "text-sm font-bold text-primary border-b-2 border-primary pb-1";
+            document.getElementById('mode-individual').className = "text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 pb-1";
+        });
+
+        document.getElementById('mode-individual').addEventListener('click', function() {
+            currentMode = 'individual';
+            document.getElementById('panel-individual').classList.remove('hidden'); 
+            document.getElementById('panel-batch').classList.add('hidden');
+            this.className = "text-sm font-bold text-primary border-b-2 border-primary pb-1";
+            document.getElementById('mode-batch').className = "text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 pb-1";
+            updateIndividualDatalist();
+        });
+    }
 
     // --- DATA PROCESSING ---
-    function processSchemeCSV(text, filenameForDisplay) {
+    function processSchemeCSV(text, filename) {
         const rows = text.split(/\r?\n/);
         schemes = [];
         rows.forEach((row, index) => {
@@ -352,57 +375,259 @@
             if (cols.length >= 2) schemes.push({ name: cols[0], code: cols[1] });
         });
         document.getElementById('scheme-control-area').classList.remove('hidden');
-        if(filenameForDisplay) {
-            const displayEl = document.getElementById('scheme-file-name');
-            displayEl.textContent = filenameForDisplay;
-            displayEl.classList.remove('italic');
-            displayEl.classList.add('text-primary', 'font-medium');
-        }
         populateSchemeDropdown(schemes);
     }
 
-    function processLabourCSV(text, filenameForDisplay) {
+    function processLabourCSV(text, filename) {
         const rows = text.split(/\r?\n/);
         allLabours = [];
         rows.forEach((row, index) => {
             if (index === 0 || !row.trim()) return;
             const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
-            if (cols.length >= 2) allLabours.push({ name: cols[0], card: cols[1] });
+            if (cols.length >= 2 && !cols[0].includes('*')) {
+                allLabours.push({ name: cols[0], card: cols[1] });
+            }
         });
         currentLabourIndex = 0;
         document.getElementById('labour-stats').classList.remove('hidden');
-        if(filenameForDisplay) {
-            const displayEl = document.getElementById('labour-file-name');
-            displayEl.textContent = filenameForDisplay;
-            displayEl.classList.remove('italic');
-            displayEl.classList.add('text-green-600', 'font-medium');
-        }
         updateStats();
+        updateIndividualDatalist();
     }
 
-    // --- EVENT LISTENERS (Uploads & Controls) ---
-    document.getElementById('scheme_csv').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => processSchemeCSV(event.target.result, file.name);
-        reader.readAsText(file);
+    // --- SEARCH & SUGGESTIONS LOGIC ---
+    function updateIndividualDatalist() {
+        const dataList = document.getElementById('labour-datalist');
+        if(!dataList) return;
+        dataList.innerHTML = '';
+        
+        if(allLabours.length === 0) return;
+        
+        allLabours.forEach((l) => {
+            const opt = document.createElement('option');
+            opt.value = `${l.name} | ${l.card}`; 
+            dataList.appendChild(opt);
+        });
+        
+        const searchInput = document.getElementById('labour-search-input');
+        searchInput.oninput = function() {
+            const val = this.value;
+            const foundIdx = allLabours.findIndex(l => `${l.name} | ${l.card}` === val);
+            if(foundIdx !== -1) {
+                lastSearchedIndex = foundIdx; // Track base index
+                refreshSuggestions(foundIdx); // Initial show
+            } else {
+                document.getElementById('suggestions-box').classList.add('hidden');
+            }
+        };
+    }
+
+    // New: Refreshes list by finding NEXT 5 available (not in table)
+    function refreshSuggestions(baseIndex) {
+        const box = document.getElementById('suggestions-box');
+        const list = document.getElementById('suggestions-list');
+        list.innerHTML = '';
+        
+        // Collect current table data for exclusion
+        const tbody = document.getElementById('labour-tbody');
+        const addedMap = new Set();
+        tbody.querySelectorAll('tr').forEach(tr => {
+            const name = tr.querySelector('input[name^="labour_name_"]').value;
+            const card = tr.querySelector('input[name^="job_card_"]').value;
+            addedMap.add(`${name}|${card}`);
+        });
+
+        let count = 0;
+        let i = baseIndex + 1; // Start searching AFTER the last added/searched one
+        
+        while(i < allLabours.length && count < 5) {
+            const l = allLabours[i];
+            const key = `${l.name}|${l.card}`;
+            
+            // Only show if NOT already in table
+            if(!addedMap.has(key)) {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded shadow-sm text-sm animate-fade-in";
+                div.innerHTML = `
+                    <span class="truncate mr-2 font-medium">${l.name} <span class="text-xs text-gray-500 font-normal">(${l.card})</span></span>
+                    <button type="button" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                        onclick="addSingleLabour(${i})">Add</button>
+                `;
+                list.appendChild(div);
+                count++;
+            }
+            i++;
+        }
+
+        if(count > 0) box.classList.remove('hidden');
+        else box.classList.add('hidden');
+    }
+
+    // --- ADD LABOUR LOGIC ---
+    
+    // 1. Add Single (called by Button or Suggestion)
+    window.addSingleLabour = function(index) {
+        if(index >= allLabours.length) return;
+        
+        const success = addToTable(allLabours[index]);
+        if(success) {
+            // Update suggestions based on the ORIGINAL search base
+            // (or move base forward? User said "update list", keeping base ensures flow)
+            if(lastSearchedIndex !== -1) {
+                refreshSuggestions(lastSearchedIndex);
+            }
+        }
+    };
+
+    // 2. Add Button (Individual Panel)
+    const btnIndivAdd = document.getElementById('btn-add-individual');
+    if(btnIndivAdd) {
+        btnIndivAdd.addEventListener('click', function() {
+            const inputVal = document.getElementById('labour-search-input').value;
+            if(!inputVal) return;
+            const foundIndex = allLabours.findIndex(l => `${l.name} | ${l.card}` === inputVal);
+            
+            if(foundIndex !== -1) {
+                addSingleLabour(foundIndex);
+                document.getElementById('labour-search-input').value = ''; 
+                lastSearchedIndex = foundIndex; // Update base
+                refreshSuggestions(foundIndex);
+            } else {
+                alert("Labour not found. Please select from dropdown.");
+            }
+        });
+    }
+
+    // 3. Main Add + UPDATED DUPLICATE CHECK
+    function addToTable(labour) {
+        const tbody = document.getElementById('labour-tbody');
+        
+        // FIX: Check (Name + Card) combination
+        let isDuplicate = false;
+        tbody.querySelectorAll('tr').forEach(tr => {
+            const existingName = tr.querySelector('input[name^="labour_name_"]').value;
+            const existingCard = tr.querySelector('input[name^="job_card_"]').value;
+            if (existingCard === labour.card && existingName === labour.name) {
+                isDuplicate = true;
+            }
+        });
+
+        if (isDuplicate) {
+            alert(`Duplicate: ${labour.name} (${labour.card}) is already added.`);
+            return false;
+        }
+
+        const rowIdx = new Date().getTime() + Math.random();
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors animate-fade-in";
+        tr.innerHTML = `
+            <td class="px-4 py-3 text-gray-500 font-mono text-xs"># <input type="hidden" name="labour_index" value="${rowIdx}"></td>
+            <td class="px-4 py-3"><input type="text" name="job_card_${rowIdx}" value="${labour.card}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
+            <td class="px-4 py-3"><input type="text" name="labour_name_${rowIdx}" value="${labour.name}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
+            <td class="px-4 py-3 text-center"><button type="button" class="text-red-500 hover:text-red-700" onclick="removeRow(this)"><i class="fa-solid fa-xmark"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+        updatePreviewTitle();
+        return true;
+    }
+
+    // Helper to remove row and refresh suggestions if needed
+    window.removeRow = function(btn) {
+        btn.closest('tr').remove();
+        updatePreviewTitle();
+        if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
+    }
+
+    // 4. Batch Add
+    document.getElementById('btn-add-batch').addEventListener('click', function() {
+        if (allLabours.length === 0) { alert("Load list first."); return; }
+        const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
+        let addedCount = 0;
+        let attemptIndex = currentLabourIndex;
+        
+        while(addedCount < countToAdd && attemptIndex < allLabours.length) {
+            const success = addToTable(allLabours[attemptIndex]);
+            if(success) addedCount++;
+            attemptIndex++;
+        }
+        currentLabourIndex = attemptIndex;
+        updateStats();
+        if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
     });
 
-    document.getElementById('labour_csv').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => processLabourCSV(event.target.result, file.name);
-        reader.readAsText(file);
-    });
+    // --- AUTO SAVE LOGIC ---
+    async function autoSaveDemand() {
+        const panchayat = document.getElementById('panchayat').value;
+        const work_code = document.getElementById('hidden_work_code').value;
+        const rows = document.querySelectorAll('#labour-tbody tr');
+        
+        // Basic Validation (Silent or minimal alert if empty)
+        if(!work_code || rows.length === 0) return; 
 
+        const labourers = [];
+        rows.forEach(row => {
+            const nameInput = row.querySelector('input[name^="labour_name_"]');
+            const cardInput = row.querySelector('input[name^="job_card_"]');
+            if(nameInput && cardInput) {
+                labourers.push({ name: nameInput.value, card: cardInput.value });
+            }
+        });
+
+        // Fire and forget (Async) - User proceeds to print view immediately
+        fetch('/api/save-demand', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                panchayat: panchayat,
+                work_code: work_code,
+                labourers: labourers
+            })
+        }).then(res => res.json())
+          .then(data => console.log("Auto-save:", data.message))
+          .catch(err => console.error("Auto-save failed", err));
+    }
+
+    // --- UTILS & LISTENERS ---
+    function updatePreviewTitle() {
+        const count = document.getElementById('labour-tbody').querySelectorAll('tr').length;
+        document.getElementById('form-preview-title').textContent = `Form Preview (${count} Labours)`;
+    }
+
+    window.adjustCount = function(c) {
+        const i = document.getElementById('labour_count');
+        let v = parseInt(i.value)||0; v+=c;
+        if(v<1)v=1; if(v>20)v=20; i.value=v;
+    }
+    
+    function updateStats() {
+        document.getElementById('lbl-total').textContent = allLabours.length;
+        document.getElementById('lbl-used').textContent = currentLabourIndex;
+        document.getElementById('lbl-remain').textContent = allLabours.length - currentLabourIndex;
+    }
+
+    document.getElementById('scheme_csv').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const parts = file.name.split('_');
+        if(parts.length > 0) document.getElementById('panchayat').value = parts[0];
+        const r = new FileReader();
+        r.onload = (ev) => processSchemeCSV(ev.target.result);
+        r.readAsText(file);
+    });
+    
+    document.getElementById('labour_csv').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const r = new FileReader();
+        r.onload = (ev) => processLabourCSV(ev.target.result);
+        r.readAsText(file);
+    });
+    
     document.getElementById('scheme_filter').addEventListener('input', function(e) {
         const val = e.target.value.toLowerCase();
         const filtered = schemes.filter(s => s.code.toLowerCase().includes(val) || s.name.toLowerCase().includes(val));
         populateSchemeDropdown(filtered);
     });
-
+    
     function populateSchemeDropdown(list) {
         const select = document.getElementById('scheme_select');
         select.innerHTML = '<option value="">-- Select Scheme --</option>';
@@ -413,12 +638,9 @@
             select.appendChild(opt);
         });
     }
-
+    
     document.getElementById('scheme_select').addEventListener('change', function() {
-        if (!this.value) {
-             document.getElementById('scheme-preview-text').classList.add('hidden');
-             return;
-        }
+        if (!this.value) { document.getElementById('scheme-preview-text').classList.add('hidden'); return; }
         const data = JSON.parse(this.value);
         document.getElementById('hidden_scheme_name').value = data.name;
         document.getElementById('hidden_work_code').value = data.code;
@@ -427,55 +649,14 @@
         document.getElementById('scheme-preview-text').classList.remove('hidden');
     });
 
-    function updateStats() {
-        document.getElementById('lbl-total').textContent = allLabours.length;
-        document.getElementById('lbl-used').textContent = currentLabourIndex;
-        document.getElementById('lbl-remain').textContent = allLabours.length - currentLabourIndex;
-    }
-
-    document.getElementById('btn-add-labours').addEventListener('click', function() {
-        if (allLabours.length === 0) { alert("Please upload or load a labour list first."); return; }
-        const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
-        const remaining = allLabours.length - currentLabourIndex;
-        const actualAdd = Math.min(countToAdd, remaining);
-        if (actualAdd <= 0) { alert("No more labourers remaining!"); return; }
-
-        const tbody = document.getElementById('labour-tbody');
-        tbody.innerHTML = ''; 
-        for (let i = 0; i < actualAdd; i++) {
-            const labour = allLabours[currentLabourIndex + i];
-            const rowIdx = i + 1;
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors";
-            tr.innerHTML = `
-                <td class="px-4 py-3 text-gray-500">${rowIdx} <input type="hidden" name="labour_index" value="${rowIdx}"></td>
-                <td class="px-4 py-3"><input type="text" name="job_card_${rowIdx}" value="${labour.card}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
-                <td class="px-4 py-3"><input type="text" name="labour_name_${rowIdx}" value="${labour.name}" readonly class="w-full bg-transparent border-none p-0 text-gray-900 dark:text-gray-100 focus:ring-0"></td>
-                <td class="px-4 py-3 text-center"><button type="button" class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove()"><i class="fa-solid fa-xmark"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-        currentLabourIndex += actualAdd;
-        updateStats();
-        document.getElementById('form-preview-title').textContent = `Form Preview (${actualAdd} Labours)`;
-    });
-    
-    document.getElementById('btn-reset-labours').addEventListener('click', function() {
-        if(confirm("Reset labour queue?")) {
-            currentLabourIndex = 0;
-            document.getElementById('labour-tbody').innerHTML = '';
-            updateStats();
-            document.getElementById('form-preview-title').textContent = `Form Preview (0 Labours)`;
+    document.getElementById('btn-reset-labours').addEventListener('click', () => {
+        if(confirm("Reset queue?")) {
+             document.getElementById('labour-tbody').innerHTML = '';
+             currentLabourIndex = 0;
+             updateStats();
+             updatePreviewTitle();
+             if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
         }
     });
-
-    window.adjustCount = function(change) {
-        const input = document.getElementById('labour_count');
-        let val = parseInt(input.value) || 0;
-        val += change;
-        if (val < 1) val = 1;
-        if (val > 20) val = 20;
-        input.value = val;
-    }
 </script>
 {% endblock %}

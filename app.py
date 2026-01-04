@@ -1,6 +1,6 @@
 import re
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify
 from num2words import num2words
 from datetime import datetime
 import requests
@@ -16,6 +16,12 @@ app.secret_key = 'your_super_secret_key'
 
 # 'static' folder ko serve karne ke liye app ko WhiteNoise se wrap karein
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="/static/")
+
+USER_DATA_DIR = os.path.join('static', 'user_data')
+DEMAND_SAVE_DIR = os.path.join(USER_DATA_DIR, 'Demand Form')
+
+if not os.path.exists(DEMAND_SAVE_DIR):
+    os.makedirs(DEMAND_SAVE_DIR)
 
 # This function is still needed for vendor management.
 def init_db():
@@ -488,33 +494,82 @@ def demand_tool():
         
     return render_template('demand_form.html')
 
+# --- NEW ROUTE: Save Demand to Cloud (Folder) ---
+# --- UPDATED ROUTE: Auto-Save Demand to Cloud (Structured Folder) ---
+@app.route('/api/save-demand', methods=['POST'])
+def save_demand_api():
+    try:
+        req_data = request.json
+        panchayat = req_data.get('panchayat', 'Unknown')
+        work_code = req_data.get('work_code', 'UnknownCode')
+        labourers = req_data.get('labourers', [])
+        
+        if not labourers:
+            return jsonify({'status': 'error', 'message': 'No labourers to save.'}), 400
+
+        # Folder Structure: user_data/Demand Form/{Date}/{Panchayat_Name}
+        today_date = datetime.now().strftime('%Y-%m-%d')
+        safe_panchayat = "".join(c for c in panchayat if c.isalnum() or c in (' ', '_')).strip()
+        
+        target_dir = os.path.join(DEMAND_SAVE_DIR, today_date, safe_panchayat)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
+
+        # Filename
+        safe_code = "".join(c for c in work_code if c.isalnum() or c in (' ', '_')).strip()[-6:]
+        timestamp = datetime.now().strftime('%H%M%S')
+        filename = f"Demand_{safe_code}_{timestamp}.csv"
+        file_path = os.path.join(target_dir, filename)
+        
+        # Write CSV
+        with open(file_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Name of Applicant', 'Job card number', 'Allocation Work Code'])
+            for lab in labourers:
+                writer.writerow([lab['name'], lab['card'], work_code])
+                
+        return jsonify({'status': 'success', 'message': f'Saved to {today_date}/{safe_panchayat}/{filename}'})
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 # --- PUBLIC FILE MANAGER LOGIC ---
-PUBLIC_DATA_DIR = os.path.join('static', 'public_data') # Folder structure: static/public_data/District/Block/Panchayat_Master.csv
+# Use absolute path to ensure it works correctly in all environments
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DATA_DIR = os.path.join(BASE_DIR, 'static', 'public_data')
 
 @app.route('/api/public/locations', methods=['GET'])
 def get_public_locations():
     """Returns directory structure for Dropdowns (District -> Block -> Panchayat)"""
     structure = {}
+    
+    # Ensure directory exists
     if not os.path.exists(PUBLIC_DATA_DIR):
-        os.makedirs(PUBLIC_DATA_DIR)
+        try:
+            os.makedirs(PUBLIC_DATA_DIR)
+        except OSError:
+            return jsonify({}) # Return empty if permission denied
         
-    # Walk through the directory
     for root, dirs, files in os.walk(PUBLIC_DATA_DIR):
         for file in files:
             if file.endswith('.csv'):
-                # Expected path: static/public_data/District/Block/Panchayat.csv
-                rel_path = os.path.relpath(os.path.join(root, file), PUBLIC_DATA_DIR)
-                parts = rel_path.split(os.sep)
-                
-                if len(parts) >= 3: # Must be nested properly
-                    district = parts[0]
-                    block = parts[1]
-                    filename = parts[-1]
+                try:
+                    # Get relative path from PUBLIC_DATA_DIR
+                    rel_path = os.path.relpath(os.path.join(root, file), PUBLIC_DATA_DIR)
+                    parts = rel_path.split(os.sep)
                     
-                    if district not in structure: structure[district] = {}
-                    if block not in structure[district]: structure[district][block] = []
+                    # Expecting: District/Block/Filename.csv (Length >= 3)
+                    if len(parts) >= 3:
+                        district = parts[0]
+                        block = parts[1]
+                        filename = parts[-1]
+                        
+                        if district not in structure: structure[district] = {}
+                        if block not in structure[district]: structure[district][block] = []
+                        structure[district][block].append(filename)
+                except ValueError:
+                    continue
                     
-                    structure[district][block].append(filename)
     return Response(json.dumps(structure), mimetype='application/json')
 
 @app.route('/api/public/get-file', methods=['POST'])
