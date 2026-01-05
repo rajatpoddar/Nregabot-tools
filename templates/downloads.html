@@ -3,76 +3,143 @@
 {% block header_title %}Saved Demand Files{% endblock %}
 
 {% block content %}
-<div
-    class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-    <div>
-        <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">Demand Files Archive</h2>
-        <p class="text-xs text-gray-500">Auto-saved generated files (Newest first)</p>
-    </div>
-    <div class="w-full md:w-1/3">
-        <input type="text" id="file-search" placeholder="Search Panchayat or Date..."
-            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-primary">
-    </div>
-</div>
+<form id="mergeForm" action="{{ url_for('merge_downloads') }}" method="POST">
+    
+    <input type="hidden" name="custom_filename" id="custom_filename">
 
-<div
-    class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
-    <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left">
-            <thead
-                class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-gray-700">
-                <tr>
-                    <th class="px-6 py-3">Date</th>
-                    <th class="px-6 py-3">Panchayat</th>
-                    <th class="px-6 py-3">Filename</th>
-                    <th class="px-6 py-3 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody id="file-table-body"
-                class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
-                {% if files %}
-                {% for file in files %}
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <td class="px-6 py-3 whitespace-nowrap">
-                        <div class="font-medium">{{ file.date }}</div>
-                        <div class="text-xs text-gray-400">{{ file.time }}</div>
-                    </td>
-                    <td class="px-6 py-3 font-medium text-primary">{{ file.panchayat }}</td>
-                    <td class="px-6 py-3 font-mono text-xs text-gray-500">{{ file.filename }}</td>
-                    <td class="px-6 py-3 text-right">
-                    <td class="px-6 py-3 text-right space-x-2">
-                        <a href="{{ url_for('view_demand', path=file.path) }}" target="_blank"
-                            class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-bold transition-colors">
-                            <i class="fa-solid fa-print mr-1"></i> Print
-                        </a>
-
-                        <a href="{{ url_for('static', filename=file.path) }}" download
-                            class="inline-flex items-center px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-bold transition-colors">
-                            <i class="fa-solid fa-download mr-1"></i> Download
-                        </a>
-                    </td>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">No saved files found yet.</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+    <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div>
+            <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">Demand Files Archive</h2>
+            <p class="text-xs text-gray-500">Auto-saved generated files (Newest first)</p>
+        </div>
+        
+        <div class="flex gap-3 w-full md:w-auto">
+            <input type="text" id="file-search" placeholder="Search..."
+                class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-primary">
+            
+            <button type="button" onclick="validateAndMerge()"
+                class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center cursor-pointer">
+                <i class="fa-solid fa-object-group mr-2"></i> Merge & Download
+            </button>
+        </div>
     </div>
-</div>
+
+    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm text-left">
+                <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-gray-700">
+                    <tr>
+                        <th class="px-4 py-3 w-10 text-center">
+                            <input type="checkbox" onclick="toggleAll(this)" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer">
+                        </th>
+                        <th class="px-6 py-3">Date</th>
+                        <th class="px-6 py-3">Panchayat</th>
+                        <th class="px-6 py-3">Filename</th>
+                        <th class="px-6 py-3 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="file-table-body" class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
+                    {% if files %}
+                    {% for file in files %}
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td class="px-4 py-3 text-center">
+                            <input type="checkbox" 
+                                   name="selected_files" 
+                                   value="{{ file.path }}" 
+                                   data-panchayat="{{ file.panchayat }}"
+                                   class="file-checkbox rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer">
+                        </td>
+                        
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <div class="font-medium">{{ file.date }}</div>
+                            <div class="text-xs text-gray-400">{{ file.time }}</div>
+                        </td>
+                        <td class="px-6 py-3 font-medium text-primary">{{ file.panchayat }}</td>
+                        <td class="px-6 py-3 font-mono text-xs text-gray-500">{{ file.filename }}</td>
+                        <td class="px-6 py-3 text-right space-x-2">
+                            <a href="{{ url_for('view_demand', path=file.path) }}" target="_blank"
+                                class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-bold transition-colors">
+                                <i class="fa-solid fa-print mr-1"></i> Print
+                            </a>
+                            <a href="{{ url_for('static', filename=file.path) }}" download
+                                class="inline-flex items-center px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-bold transition-colors">
+                                <i class="fa-solid fa-download mr-1"></i> Download
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">No saved files found yet.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
 
 <script>
+    // Search Function
     document.getElementById('file-search').addEventListener('keyup', function () {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('#file-table-body tr');
-
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(value) ? '' : 'none';
         });
     });
+
+    // Toggle All Checkboxes
+    function toggleAll(source) {
+        const checkboxes = document.getElementsByName('selected_files');
+        for(let i=0; i<checkboxes.length; i++) {
+            if(checkboxes[i].closest('tr').style.display !== 'none'){
+                checkboxes[i].checked = source.checked;
+            }
+        }
+    }
+
+    // --- NEW VALIDATION & MERGE FUNCTION ---
+    function validateAndMerge() {
+        const checkboxes = document.querySelectorAll('input[name="selected_files"]:checked');
+        
+        // 1. Minimum File Check
+        if (checkboxes.length < 2) {
+            alert("Merge karne ke liye kam se kam 2 files select karein.");
+            return;
+        }
+
+        // 2. Panchayat Consistency Check
+        let firstPanchayat = null;
+        let isDifferent = false;
+
+        checkboxes.forEach((cb) => {
+            const currentPanchayat = cb.getAttribute('data-panchayat');
+            
+            if (firstPanchayat === null) {
+                firstPanchayat = currentPanchayat;
+            } else if (currentPanchayat !== firstPanchayat) {
+                isDifferent = true;
+            }
+        });
+
+        if (isDifferent) {
+            alert("Error: Aap alag-alag Panchayat ki files ko merge nahi kar sakte!\n\nKripya sirf ek hi Panchayat ki files select karein.");
+            return; // Process wahin rok do
+        }
+
+        // 3. Ask for Filename (User Input)
+        // Default value mein hum Panchayat ka naam dikha dete hain taaki user ko aasani ho
+        let userFilename = prompt("Enter File Name Prefix:\n(Date aur Time automatically add ho jayega)", firstPanchayat);
+
+        if (userFilename === null) {
+            return; // Cancel clicked
+        }
+        
+        // 4. Submit Form
+        document.getElementById('custom_filename').value = userFilename;
+        document.getElementById('mergeForm').submit();
+    }
 </script>
 {% endblock %}

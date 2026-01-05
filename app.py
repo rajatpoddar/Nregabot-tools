@@ -572,6 +572,97 @@ def downloads():
     
     return render_template('downloads.html', files=files_list)
 
+# app.py mein is function ko update karein
+
+@app.route('/merge-downloads', methods=['POST'])
+def merge_downloads():
+    selected_files = request.form.getlist('selected_files')
+    # Frontend se bheja gaya custom naam (e.g. "Palojori")
+    custom_prefix = request.form.get('custom_filename', '').strip()
+    
+    if not selected_files or len(selected_files) < 2:
+        flash("Merge karne ke liye kam se kam 2 files select karein.", "warning")
+        return redirect(url_for('downloads'))
+
+    merged_data = []
+    header = []
+    first_panchayat = None
+    
+    try:
+        for index, rel_path in enumerate(selected_files):
+            # 1. Path Security & Construction
+            full_path = os.path.join(app.root_path, 'static', rel_path)
+            if not os.path.exists(full_path):
+                continue
+
+            # 2. Panchayat Consistency Check (Backend Safety)
+            # Folder structure: .../Date/Panchayat/Filename.csv
+            # Hum file ke parent folder ka naam nikal rahe hain jo Panchayat hai
+            current_panchayat = os.path.basename(os.path.dirname(full_path))
+            
+            if first_panchayat is None:
+                first_panchayat = current_panchayat
+            elif current_panchayat != first_panchayat:
+                # Agar Panchayat match nahi hui to error dekar rok do
+                flash(f"Error: Alag-alag Panchayats ('{first_panchayat}' aur '{current_panchayat}') merge nahi ho sakti.", "error")
+                return redirect(url_for('downloads'))
+            
+            # 3. Read File
+            with open(full_path, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                rows = list(reader)
+                
+                if not rows: continue
+                
+                # Header Handling: Sirf pehli file ka header lo
+                if index == 0:
+                    header = rows[0]
+                
+                # Data add karo (Header skip karke)
+                merged_data.extend(rows[1:])
+    
+        if not merged_data:
+            flash("Files khali hain ya data read nahi ho paaya.", "error")
+            return redirect(url_for('downloads'))
+
+        # 4. Sorting Logic (Allocation Work Code ke hisaab se)
+        try:
+            work_code_index = -1
+            for i, h in enumerate(header):
+                if "code" in h.lower() and "work" in h.lower():
+                    work_code_index = i
+                    break
+            
+            if work_code_index != -1:
+                merged_data.sort(key=lambda x: x[work_code_index])
+        except Exception:
+            pass
+
+        # 5. Filename Generation
+        # Agar user ne naam diya hai to wo use karein, nahi to Panchayat ka naam default lein
+        prefix = custom_prefix if custom_prefix else (first_panchayat or "Merged")
+        # Invalid characters hata kar filename safe banayein
+        safe_prefix = "".join(c for c in prefix if c.isalnum() or c in (' ', '_', '-')).strip()
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        final_filename = f"{safe_prefix}_{timestamp}.csv"
+
+        # 6. CSV Output
+        si = io.StringIO()
+        cw = csv.writer(si)
+        cw.writerow(header)
+        cw.writerows(merged_data)
+        
+        return Response(
+            si.getvalue(),
+            mimetype="text/csv",
+            headers={"Content-Disposition": f"attachment;filename={final_filename}"}
+        )
+
+    except Exception as e:
+        flash(f"Error merging files: {e}", "error")
+        return redirect(url_for('downloads'))
+
 # --- ADMIN & PRINT FEATURES ---
 
 # 1. View/Print Saved Demand
