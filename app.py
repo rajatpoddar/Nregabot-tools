@@ -1,6 +1,6 @@
 import re
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify, session
 from num2words import num2words
 from datetime import datetime
 import requests
@@ -10,6 +10,7 @@ import io
 from whitenoise import WhiteNoise
 import os
 import json
+import shutil
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key'
@@ -532,6 +533,199 @@ def save_demand_api():
         
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# --- NEW ROUTE: Downloads Manager ---
+@app.route('/downloads')
+def downloads():
+    files_list = []
+    
+    # Directory walk karke saari CSV files dhundho
+    for root, dirs, files in os.walk(DEMAND_SAVE_DIR):
+        for file in files:
+            if file.endswith('.csv'):
+                # Full path aur relative path nikalo
+                full_path = os.path.join(root, file)
+                
+                # Path parts extract karo: Date aur Panchayat folder name se
+                # Structure: static/user_data/Demand Form/{Date}/{Panchayat}/{File}
+                rel_path = os.path.relpath(full_path, 'static') # URL generation ke liye
+                path_parts = os.path.relpath(full_path, DEMAND_SAVE_DIR).split(os.sep)
+                
+                date_folder = path_parts[0] if len(path_parts) > 1 else "Unknown"
+                panchayat_folder = path_parts[1] if len(path_parts) > 2 else "Unknown"
+                
+                # File creation time
+                timestamp = os.path.getmtime(full_path)
+                created_time = datetime.fromtimestamp(timestamp).strftime('%I:%M %p')
+                
+                files_list.append({
+                    'filename': file,
+                    'date': date_folder,
+                    'panchayat': panchayat_folder,
+                    'time': created_time,
+                    'path': rel_path,
+                    'timestamp': timestamp # Sorting ke liye
+                })
+
+    # Sabse nayi file upar dikhane ke liye sort karein
+    files_list.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    return render_template('downloads.html', files=files_list)
+
+# --- ADMIN & PRINT FEATURES ---
+
+# 1. View/Print Saved Demand
+@app.route('/view-demand')
+def view_demand():
+    file_path = request.args.get('path')
+    full_path = os.path.join('static', file_path)
+    
+    if not os.path.exists(full_path):
+        return "File not found"
+    
+    # CSV Data Parse karo
+    labourers = []
+    work_code = ""
+    
+    try:
+        with open(full_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                # CSV headers match karo (save format ke hisaab se)
+                name = row.get('Name of Applicant') or row.get('Name')
+                card = row.get('Job card number') or row.get('Job Card')
+                w_code = row.get('Allocation Work Code') or row.get('Work Code')
+                
+                if w_code: work_code = w_code
+                
+                if name and card:
+                    labourers.append({
+                        'sr': len(labourers) + 1,
+                        'name': name,
+                        'card': card
+                    })
+    except Exception as e:
+        return f"Error reading file: {e}"
+
+    # Folder structure se Panchayat aur Date nikalo
+    path_parts = file_path.split(os.sep)
+    panchayat = "Unknown"
+    if len(path_parts) >= 3:
+        panchayat = path_parts[-2] # Folder name
+
+    data = {
+        'panchayat': panchayat,
+        'scheme_full_name': 'Saved Demand File (Scheme Name Not Stored)', # CSV me scheme name nahi hota
+        'work_code': work_code,
+        'date': datetime.now().strftime('%d/%m/%Y'), # Print date
+        'labourers': labourers
+    }
+    
+    return render_template('demand_print.html', data=data)
+
+# 2. Admin Login
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        pin = request.form.get('pin')
+        if pin == '5978':
+            session['admin_logged_in'] = True
+            return redirect(url_for('public_manager'))
+        else:
+            flash('Incorrect PIN', 'error')
+    return render_template('admin_login.html')
+
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('home'))
+
+# 3. Public Data Manager
+@app.route('/admin/public-manager')
+def public_manager():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    # Current path navigator (query param 'path')
+    current_rel_path = request.args.get('path', '')
+    
+    # Security check: Path traversal roko
+    if '..' in current_rel_path or current_rel_path.startswith('/'):
+        current_rel_path = ''
+        
+    abs_path = os.path.join(PUBLIC_DATA_DIR, current_rel_path)
+    
+    # Ensure dir exists
+    if not os.path.exists(abs_path):
+        os.makedirs(abs_path)
+        
+    items = []
+    try:
+        with os.scandir(abs_path) as entries:
+            for entry in entries:
+                is_dir = entry.is_dir()
+                items.append({
+                    'name': entry.name,
+                    'is_dir': is_dir,
+                    'path': os.path.join(current_rel_path, entry.name),
+                    'size': 'Folder' if is_dir else f"{os.path.getsize(entry.path) / 1024:.1f} KB"
+                })
+    except Exception as e:
+        flash(f"Error reading directory: {e}", 'error')
+
+    # Sort: Folders pehle
+    items.sort(key=lambda x: (not x['is_dir'], x['name']))
+    
+    # Breadcrumbs generation
+    breadcrumbs = [{'name': 'Home', 'path': ''}]
+    if current_rel_path:
+        parts = current_rel_path.split(os.sep)
+        build_path = ''
+        for part in parts:
+            if part:
+                build_path = os.path.join(build_path, part)
+                breadcrumbs.append({'name': part, 'path': build_path})
+
+    return render_template('public_manager.html', items=items, current_path=current_rel_path, breadcrumbs=breadcrumbs)
+
+# 4. Admin Actions (Upload, Create Folder, Delete)
+@app.route('/admin/action', methods=['POST'])
+def admin_action():
+    if not session.get('admin_logged_in'):
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+        
+    action = request.form.get('action')
+    current_path = request.form.get('current_path', '')
+    target_dir = os.path.join(PUBLIC_DATA_DIR, current_path)
+    
+    try:
+        if action == 'create_folder':
+            folder_name = request.form.get('folder_name')
+            if folder_name:
+                os.makedirs(os.path.join(target_dir, folder_name), exist_ok=True)
+                flash('Folder created!', 'success')
+                
+        elif action == 'upload_file':
+            files = request.files.getlist('files')
+            for file in files:
+                if file and file.filename:
+                    file.save(os.path.join(target_dir, file.filename))
+            flash(f'{len(files)} files uploaded!', 'success')
+            
+        elif action == 'delete':
+            item_path = request.form.get('item_path')
+            full_item_path = os.path.join(PUBLIC_DATA_DIR, item_path)
+            if os.path.isdir(full_item_path):
+                import shutil
+                shutil.rmtree(full_item_path)
+            else:
+                os.remove(full_item_path)
+            flash('Item deleted.', 'success')
+            
+    except Exception as e:
+        flash(f"Error: {e}", 'error')
+        
+    return redirect(url_for('public_manager', path=current_path))
 
 # --- PUBLIC FILE MANAGER LOGIC ---
 # Use absolute path to ensure it works correctly in all environments

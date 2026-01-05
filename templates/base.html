@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en" class="light">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Nrega Bot- Tools{% endblock %}</title>
-    
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -39,36 +40,54 @@
     </script>
 
     <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && sysDark)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        })();
+            (function () {
+                const savedTheme = localStorage.getItem('theme');
+                const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedTheme === 'dark' || (!savedTheme && sysDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            })();
     </script>
 
     <style>
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-        .content-transition { transition: margin-left 0.3s ease-in-out; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .content-transition {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         /* [OPTIONAL] Page load ke time transition rokne ke liye */
-        .preload * { transition: none !important; }
+        .preload * {
+            transition: none !important;
+        }
     </style>
 </head>
 
-<body class="preload bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 font-sans antialiased flex flex-col min-h-screen">
+<body
+    class="preload bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 font-sans antialiased flex flex-col min-h-screen">
 
-    <header class="fixed top-0 left-0 right-0 h-16 bg-light-card dark:bg-dark-card border-b border-light-border dark:border-dark-border z-50 flex items-center justify-between px-4 shadow-sm transition-colors duration-300">
+    <header
+        class="fixed top-0 left-0 right-0 h-16 bg-light-card dark:bg-dark-card border-b border-light-border dark:border-dark-border z-50 flex items-center justify-between px-4 shadow-sm transition-colors duration-300">
         <div class="flex items-center gap-3">
-            <button id="hamburger-btn" class="md:hidden text-2xl focus:outline-none text-light-text dark:text-dark-text p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+            <button id="hamburger-btn"
+                class="md:hidden text-2xl focus:outline-none text-light-text dark:text-dark-text p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <a href="{{ url_for('home') }}" class="flex items-center text-xl font-bold text-primary no-underline hover:opacity-80 transition-opacity">
+            <a href="{{ url_for('home') }}"
+                class="flex items-center text-xl font-bold text-primary no-underline hover:opacity-80 transition-opacity">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="h-8 w-auto mr-2">
                 <span class="hidden sm:inline">Nrega Bot- Tools</span>
             </a>
@@ -83,31 +102,47 @@
 
     <div class="flex pt-16 flex-1 relative">
 
-        <aside id="sidebar" class="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-light-card dark:bg-dark-card border-r border-light-border dark:border-dark-border shadow-lg z-40 transform -translate-x-full md:translate-x-0 sidebar-transition flex flex-col">
-            
+        <aside id="sidebar"
+            class="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-light-card dark:bg-dark-card border-r border-light-border dark:border-dark-border shadow-lg z-40 transform -translate-x-full md:translate-x-0 sidebar-transition flex flex-col">
+
             <nav class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-1">
                 <div class="px-3 pt-2 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Demand</div>
-                <a href="{{ url_for('allocation_list') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'allocation_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('allocation_list') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'allocation_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-wand-magic-sparkles w-5 text-center"></i><span>Allocation List</span>
                 </a>
-                <a href="{{ url_for('applicant_list') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'applicant_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('applicant_list') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'applicant_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-address-card w-5 text-center"></i><span>Applicant List</span>
                 </a>
-                <a href="{{ url_for('contractor_list') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'contractor_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('contractor_list') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'contractor_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-list-check w-5 text-center"></i><span>Contractor List</span>
                 </a>
 
                 <div class="px-3 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">WC Gen</div>
-                <a href="{{ url_for('scheme_list') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'scheme_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('scheme_list') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'scheme_list' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-hashtag w-5 text-center"></i><span>Scheme List</span>
                 </a>
 
                 <div class="px-3 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Utilities</div>
-                <a href="{{ url_for('scheme_extractor') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'scheme_extractor' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('scheme_extractor') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'scheme_extractor' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-scissors w-5 text-center"></i><span>Scheme Extractor</span>
                 </a>
-                <a href="{{ url_for('demand_tool') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'demand_tool' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                <a href="{{ url_for('demand_tool') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'demand_tool' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                     <i class="fa-solid fa-file-invoice w-5 text-center"></i><span>Demand Gen</span>
+                </a>
+                <div class="px-3 pt-4 pb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">Admin</div>
+                <a href="{{ url_for('downloads') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'downloads' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                    <i class="fa-solid fa-folder-open w-5 text-center"></i><span>Saved Files</span>
+                </a>
+                <a href="{{ url_for('public_manager') }}"
+                    class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 {{ 'bg-blue-50 text-primary dark:bg-blue-900/20 dark:text-blue-400' if request.endpoint == 'public_manager' else 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
+                    <i class="fa-solid fa-server w-5 text-center"></i><span>Public Data Manager</span>
                 </a>
             </nav>
 
@@ -118,12 +153,14 @@
                         <span class="text-xs font-semibold uppercase tracking-wide">Theme</span>
                     </div>
                     <div class="relative">
-                        <select id="theme-select" class="appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-1.5 pl-3 pr-8 rounded-md text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                        <select id="theme-select"
+                            class="appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-1.5 pl-3 pr-8 rounded-md text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                             <option value="auto">Auto Sync</option>
                             <option value="light">Light</option>
                             <option value="dark">Dark</option>
                         </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
                             <i class="fa-solid fa-chevron-down text-[10px]"></i>
                         </div>
                     </div>
@@ -131,31 +168,37 @@
             </div>
         </aside>
 
-        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity backdrop-blur-sm"></div>
+        <div id="sidebar-backdrop"
+            class="fixed inset-0 bg-black/50 z-30 hidden md:hidden transition-opacity backdrop-blur-sm"></div>
 
-        <main class="flex-1 w-full md:ml-64 content-transition p-4 md:p-6 overflow-x-hidden flex flex-col min-h-[calc(100vh-4rem)]">
+        <main
+            class="flex-1 w-full md:ml-64 content-transition p-4 md:p-6 overflow-x-hidden flex flex-col min-h-[calc(100vh-4rem)]">
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="max-w-6xl mx-auto mb-6 space-y-2 w-full">
-                    {% for category, message in messages %}
-                        <div class="p-4 rounded-lg border flex items-start gap-3 shadow-sm animate-fade-in
+            {% if messages %}
+            <div class="max-w-6xl mx-auto mb-6 space-y-2 w-full">
+                {% for category, message in messages %}
+                <div
+                    class="p-4 rounded-lg border flex items-start gap-3 shadow-sm animate-fade-in
                             {% if category == 'success' %} bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800
                             {% elif category == 'error' %} bg-red-50 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800
                             {% else %} bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800 {% endif %}">
-                            <i class="fa-solid mt-0.5 {% if category == 'success' %} fa-check-circle {% elif category == 'error' %} fa-circle-exclamation {% else %} fa-triangle-exclamation {% endif %}"></i>
-                            <span class="text-sm font-medium">{{ message }}</span>
-                        </div>
-                    {% endfor %}
-                    </div>
-                {% endif %}
+                    <i
+                        class="fa-solid mt-0.5 {% if category == 'success' %} fa-check-circle {% elif category == 'error' %} fa-circle-exclamation {% else %} fa-triangle-exclamation {% endif %}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             {% endwith %}
 
-            <div class="bg-light-card dark:bg-dark-card rounded-xl shadow-sm border border-light-border dark:border-dark-border p-6 flex-1">
+            <div
+                class="bg-light-card dark:bg-dark-card rounded-xl shadow-sm border border-light-border dark:border-dark-border p-6 flex-1">
                 {% block content %}{% endblock %}
             </div>
 
             <footer class="mt-auto pt-8 text-center text-gray-400 text-xs">
-                <p>&copy; 2025 <a href="https://nregabot.com" class="hover:text-primary transition-colors">Nrega Bot</a>. All Rights Reserved.</p>
+                <p>&copy; 2025 <a href="https://nregabot.com" class="hover:text-primary transition-colors">Nrega
+                        Bot</a>. All Rights Reserved.</p>
             </footer>
         </main>
     </div>
@@ -185,10 +228,10 @@
             const html = document.documentElement;
             if (theme === 'dark') {
                 html.classList.add('dark');
-                if(themeIcon) themeIcon.className = 'fas fa-moon';
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
             } else {
                 html.classList.remove('dark');
-                if(themeIcon) themeIcon.className = 'fas fa-sun';
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
             }
         }
 
@@ -210,7 +253,7 @@
         const savedTheme = localStorage.getItem('theme') || 'auto';
         themeSelect.value = savedTheme;
         // Note: Actual class application is handled by the head script now.
-        
+
         // Listen for OS Change
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             if (!localStorage.getItem('theme') || localStorage.getItem('theme') === 'auto') {
@@ -239,7 +282,7 @@
                 const result = await response.json();
                 if (response.ok && result.status === 'success') buttonElement.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
                 else throw new Error(result.reason || 'Failed.');
-            } catch (err) { alert(`Save failed: ${err.message}`); buttonElement.innerHTML = originalText; } 
+            } catch (err) { alert(`Save failed: ${err.message}`); buttonElement.innerHTML = originalText; }
             finally { setTimeout(() => { buttonElement.innerHTML = originalText; buttonElement.disabled = false; }, 2000); }
         }
         async function handleCloudSaveClick(contentProviderFn, relativePath, baseFilename, buttonElement) {
@@ -253,20 +296,20 @@
             const content = contentProviderFn();
             if (!content) { buttonElement.innerHTML = originalText; buttonElement.disabled = false; return; }
             const now = new Date();
-            const timestamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours()}${now.getMinutes()}`;
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours()}${now.getMinutes()}`;
             await saveToCloud(content, relativePath, `${baseFilename.replace('.csv', '')}_${timestamp}.csv`, buttonElement);
         }
-        
+
         let cloudFilePickerResolver = null;
         function closeCloudFilePicker() {
             const modal = document.getElementById('cloud-file-picker-modal');
-            if(modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
             if (cloudFilePickerResolver) { cloudFilePickerResolver(null); cloudFilePickerResolver = null; }
         }
         async function loadFromCloud(relativePath) {
             const modal = document.getElementById('cloud-file-picker-modal');
             const fileListDiv = document.getElementById('cloud-file-list');
-            if(!modal) return null;
+            if (!modal) return null;
             modal.classList.remove('hidden'); modal.classList.add('flex');
             fileListDiv.innerHTML = '<p class="text-center py-10 text-gray-500"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</p>';
             return new Promise(async (resolve) => {
@@ -302,20 +345,25 @@
             } catch (err) { console.error(err); }
         }
     </script>
-    
-    <div id="cloud-file-picker-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[60] p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-dark-card w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[80vh] border border-gray-200 dark:border-gray-700" onclick="event.stopPropagation()">
+
+    <div id="cloud-file-picker-modal"
+        class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[60] p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-dark-card w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[80vh] border border-gray-200 dark:border-gray-700"
+            onclick="event.stopPropagation()">
             <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 p-4">
                 <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Choose File</h2>
-                <button type="button" onclick="closeCloudFilePicker()" class="text-2xl text-gray-500 hover:text-red-500">&times;</button>
+                <button type="button" onclick="closeCloudFilePicker()"
+                    class="text-2xl text-gray-500 hover:text-red-500">&times;</button>
             </div>
             <div id="cloud-file-list" class="overflow-y-auto flex-grow p-4 min-h-[300px]"></div>
             <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                <button type="button" onclick="closeCloudFilePicker()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
+                <button type="button" onclick="closeCloudFilePicker()"
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</button>
             </div>
         </div>
     </div>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

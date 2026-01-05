@@ -29,16 +29,16 @@
         /* Strict A4 Page Rules */
         @page {
             size: A4;
-            margin: 0; /* Browser default headers/footers remove karne ke liye */
+            margin: 0;
         }
 
         @media print {
             html, body {
                 width: 210mm;
-                height: 100%; /* Auto adjust */
+                height: 100%;
                 margin: 0;
                 padding: 0;
-                overflow: hidden; /* Extra page rokne ke liye sabse zaruri */
+                overflow: hidden;
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
             }
@@ -47,10 +47,8 @@
                 display: none !important; 
             }
 
-            /* Main Page Container */
             .page-container {
                 width: 210mm !important;
-                /* Height ko 296mm se ghata kar 285mm kiya gaya hai taaki mobile margins adjust ho sakein */
                 height: 285mm !important; 
                 margin: 0 auto !important;
                 padding: 10mm 15mm !important; 
@@ -63,28 +61,17 @@
                 overflow: hidden; 
             }
 
-            /* Table Styles for Print */
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-            
-            /* Cell sizing fixed for uniform 20 rows */
+            table { width: 100%; border-collapse: collapse; }
             td, th {
-                padding: 0 4px !important; /* Horizontal padding */
+                padding: 0 4px !important;
                 vertical-align: middle;
                 border: 1px solid black;
                 font-size: 10pt !important;
-                height: 8mm !important; /* Fixed height ~30px per row */
-                white-space: nowrap; /* Prevent wrapping */
+                height: 8mm !important;
+                white-space: nowrap;
                 overflow: hidden;
             }
-            
-            /* Allow name wrapping if strictly needed */
-            td.name-cell {
-                white-space: normal;
-                line-height: 1.1;
-            }
+            td.name-cell { white-space: normal; line-height: 1.1; }
         }
     </style>
 </head>
@@ -95,8 +82,16 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-            Print Demand (A4)
+            Print Demand
         </button>
+        
+        <button onclick="downloadCSV()" class="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download CSV (App)
+        </button>
+
         <div class="bg-yellow-100 text-yellow-800 text-xs p-2 rounded border border-yellow-300 max-w-[200px]">
             <strong>Tip:</strong> Ensure Scale is 100% and Paper Size is A4.
         </div>
@@ -194,8 +189,56 @@
                 Generated via NregaBot Tools • {{ data.date }}
             </div>
         </div>
-
     </div>
+
+    <script>
+        function downloadCSV() {
+            // Get data from the template
+            const workCode = "{{ data.work_code }}";
+            const labourers = [
+                {% for labour in data.labourers %}
+                { name: "{{ labour.name }}", card: "{{ labour.card }}" },
+                {% endfor %}
+            ];
+
+            if (labourers.length === 0) {
+                alert("No labourers to export!");
+                return;
+            }
+
+            // Define CSV Header matching your Desktop App expectations
+            // Columns: Name of Applicant, Job card number, Allocation Work Code
+            const header = ["Name of Applicant", "Job card number", "Allocation Work Code"];
+            
+            // Build Rows
+            const rows = labourers.map(l => [
+                `"${l.name}"`,  // Quote to handle commas in names
+                `"${l.card}"`,
+                `"${workCode}"`
+            ]);
+
+            // Combine
+            const csvContent = [
+                header.join(","),
+                ...rows.map(r => r.join(","))
+            ].join("\n");
+
+            // Create Blob and Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            // Create filename: Demand_Panchayat_WorkCode.csv
+            const panchayat = "{{ data.panchayat }}".replace(/[^a-z0-9]/gi, '_');
+            const safeCode = workCode.replace(/[^a-z0-9]/gi, '').slice(-6);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Demand_${panchayat}_${safeCode}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
 
 </body>
 </html>

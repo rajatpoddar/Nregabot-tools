@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+{% block header_title %}Admin Access{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[50vh]">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 w-full max-w-sm text-center">
+        <div class="mb-6">
+            <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-lock text-2xl text-red-500"></i>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Restricted Area</h2>
+            <p class="text-sm text-gray-500">Enter PIN to manage public data</p>
+        </div>
+
+        <form method="post">
+            <div class="mb-6">
+                <input type="password" name="pin" placeholder="Enter 4-digit PIN" maxlength="4" autofocus
+                    class="w-full text-center text-2xl tracking-[0.5em] font-bold p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-red-500 outline-none transition-all">
+            </div>
+            <button type="submit" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors">
+                Unlock Panel
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

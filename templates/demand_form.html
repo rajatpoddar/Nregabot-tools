@@ -140,11 +140,14 @@
 
         <div id="panel-individual" class="hidden animate-fade-in">
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search & Select Labour (Type Name or JC)</label>
-            <div class="flex gap-2 mb-4">
-                <input type="text" id="labour-search-input" list="labour-datalist" placeholder="Start typing name or job card..." 
-                    class="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500">
-                <datalist id="labour-datalist">
-                    </datalist>
+            <div class="flex gap-2 mb-4 relative">
+                <div class="relative w-full">
+                    <input type="text" id="labour-search-input" placeholder="Type suffix e.g. 2/68 or Name..." 
+                        class="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500" autocomplete="off">
+                    
+                    <div id="search-dropdown" class="hidden absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
+                        </div>
+                </div>
                 
                 <button type="button" id="btn-add-individual" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg whitespace-nowrap">
                     <i class="fa-solid fa-plus"></i> Add
@@ -152,11 +155,12 @@
             </div>
 
             <div id="suggestions-box" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
-                <div class="text-xs font-bold text-yellow-800 dark:text-yellow-200 mb-2 uppercase tracking-wide">
-                    <i class="fa-solid fa-people-group mr-1"></i> Suggested (Family/Neighbors)
+                <div class="text-xs font-bold text-yellow-800 dark:text-yellow-200 mb-2 uppercase tracking-wide flex justify-between items-center">
+                    <span><i class="fa-solid fa-people-group mr-1"></i> Suggested Neighbours</span>
+                    <span class="text-[10px] opacity-70">(Scroll for more)</span>
                 </div>
-                <div id="suggestions-list" class="space-y-2">
-                    </div>
+                <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                </div>
             </div>
         </div>
     </div>
@@ -378,56 +382,115 @@
         populateSchemeDropdown(schemes);
     }
 
+    // --- UPDATED DATA PROCESSING ---
     function processLabourCSV(text, filename) {
         const rows = text.split(/\r?\n/);
         allLabours = [];
         rows.forEach((row, index) => {
             if (index === 0 || !row.trim()) return;
-            const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
             if (cols.length >= 2 && !cols[0].includes('*')) {
-                allLabours.push({ name: cols[0], card: cols[1] });
+                allLabours.push({ 
+                    name: cols[0], 
+                    card: cols[1],
+                    // Pre-compute normalized fields for faster search
+                    searchStr: (cols[0] + " " + cols[1]).toLowerCase()
+                });
             }
         });
         currentLabourIndex = 0;
         document.getElementById('labour-stats').classList.remove('hidden');
         updateStats();
-        updateIndividualDatalist();
+        
+        // Initialize Smart Search instead of Datalist
+        setupSmartSearch();
     }
 
-    // --- SEARCH & SUGGESTIONS LOGIC ---
-    function updateIndividualDatalist() {
-        const dataList = document.getElementById('labour-datalist');
-        if(!dataList) return;
-        dataList.innerHTML = '';
+    // --- NEW SMART SEARCH LOGIC ---
+    function setupSmartSearch() {
+        const input = document.getElementById('labour-search-input');
+        const dropdown = document.getElementById('search-dropdown');
         
-        if(allLabours.length === 0) return;
+        input.addEventListener('input', function() {
+            const term = this.value.trim().toLowerCase();
+            if (term.length < 1) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            // Smart Sorting Logic
+            const results = allLabours
+                .map((l, index) => {
+                    let score = 0;
+                    const cardLower = l.card.toLowerCase();
+                    const nameLower = l.name.toLowerCase();
+
+                    // Priority 1: Exact Suffix Match (e.g. "2/68" in "...002/68")
+                    if (cardLower.endsWith(term)) score += 100;
+                    // Priority 2: Contains term in Card
+                    else if (cardLower.includes(term)) score += 50;
+                    // Priority 3: Name starts with term
+                    else if (nameLower.startsWith(term)) score += 30;
+                    // Priority 4: Name contains term
+                    else if (nameLower.includes(term)) score += 10;
+
+                    return { labour: l, index: index, score: score };
+                })
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score) // High score first
+                .slice(0, 15); // Show top 15 results
+
+            renderDropdown(results);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    }
+
+    function renderDropdown(results) {
+        const dropdown = document.getElementById('search-dropdown');
+        dropdown.innerHTML = '';
         
-        allLabours.forEach((l) => {
-            const opt = document.createElement('option');
-            opt.value = `${l.name} | ${l.card}`; 
-            dataList.appendChild(opt);
+        if (results.length === 0) {
+            dropdown.classList.add('hidden');
+            return;
+        }
+
+        results.forEach(item => {
+            const l = item.labour;
+            const div = document.createElement('div');
+            div.className = "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-none";
+            div.innerHTML = `
+                <div class="font-bold text-sm text-gray-800 dark:text-gray-200">${l.name}</div>
+                <div class="text-xs text-gray-500 font-mono">${l.card}</div>
+            `;
+            div.onclick = () => {
+                selectLabourFromSearch(item.index);
+                dropdown.classList.add('hidden');
+                document.getElementById('labour-search-input').value = '';
+            };
+            dropdown.appendChild(div);
         });
         
-        const searchInput = document.getElementById('labour-search-input');
-        searchInput.oninput = function() {
-            const val = this.value;
-            const foundIdx = allLabours.findIndex(l => `${l.name} | ${l.card}` === val);
-            if(foundIdx !== -1) {
-                lastSearchedIndex = foundIdx; // Track base index
-                refreshSuggestions(foundIdx); // Initial show
-            } else {
-                document.getElementById('suggestions-box').classList.add('hidden');
-            }
-        };
+        dropdown.classList.remove('hidden');
     }
 
-    // New: Refreshes list by finding NEXT 5 available (not in table)
+    function selectLabourFromSearch(index) {
+        addSingleLabour(index);
+        lastSearchedIndex = index;
+        refreshSuggestions(index);
+    }
+
+    // --- UPDATED SUGGESTIONS LOGIC (SCROLLABLE 50+) ---
     function refreshSuggestions(baseIndex) {
         const box = document.getElementById('suggestions-box');
         const list = document.getElementById('suggestions-list');
         list.innerHTML = '';
         
-        // Collect current table data for exclusion
         const tbody = document.getElementById('labour-tbody');
         const addedMap = new Set();
         tbody.querySelectorAll('tr').forEach(tr => {
@@ -437,19 +500,19 @@
         });
 
         let count = 0;
-        let i = baseIndex + 1; // Start searching AFTER the last added/searched one
+        let i = baseIndex + 1;
         
-        while(i < allLabours.length && count < 5) {
+        // Increased limit to 50 for scrolling
+        while(i < allLabours.length && count < 50) {
             const l = allLabours[i];
             const key = `${l.name}|${l.card}`;
             
-            // Only show if NOT already in table
             if(!addedMap.has(key)) {
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded shadow-sm text-sm animate-fade-in";
                 div.innerHTML = `
                     <span class="truncate mr-2 font-medium">${l.name} <span class="text-xs text-gray-500 font-normal">(${l.card})</span></span>
-                    <button type="button" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                    <button type="button" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 shrink-0"
                         onclick="addSingleLabour(${i})">Add</button>
                 `;
                 list.appendChild(div);
