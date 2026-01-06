@@ -2,7 +2,7 @@ import re
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash, Response, jsonify, session
 from num2words import num2words
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import requests
 from bs4 import BeautifulSoup
 import csv
@@ -14,6 +14,7 @@ import shutil
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key'
+IST = timezone(timedelta(hours=5, minutes=30))
 
 # 'static' folder ko serve karne ke liye app ko WhiteNoise se wrap karein
 app.wsgi_app = WhiteNoise(app.wsgi_app, root="static/", prefix="/static/")
@@ -509,16 +510,22 @@ def save_demand_api():
             return jsonify({'status': 'error', 'message': 'No labourers to save.'}), 400
 
         # Folder Structure: user_data/Demand Form/{Date}/{Panchayat_Name}
-        today_date = datetime.now().strftime('%Y-%m-%d')
+        # FIX: Using IST for Date and Time
+        now_ist = datetime.now(IST)
+        today_date = now_ist.strftime('%Y-%m-%d')
+        
+        # FIX: Ensure Panchayat name is safe and not empty
         safe_panchayat = "".join(c for c in panchayat if c.isalnum() or c in (' ', '_')).strip()
+        if not safe_panchayat: 
+            safe_panchayat = "Unknown"
         
         target_dir = os.path.join(DEMAND_SAVE_DIR, today_date, safe_panchayat)
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
 
-        # Filename
+        # Filename with IST timestamp
         safe_code = "".join(c for c in work_code if c.isalnum() or c in (' ', '_')).strip()[-6:]
-        timestamp = datetime.now().strftime('%H%M%S')
+        timestamp = now_ist.strftime('%H%M%S')
         filename = f"Demand_{safe_code}_{timestamp}.csv"
         file_path = os.path.join(target_dir, filename)
         
@@ -543,27 +550,29 @@ def downloads():
     for root, dirs, files in os.walk(DEMAND_SAVE_DIR):
         for file in files:
             if file.endswith('.csv'):
-                # Full path aur relative path nikalo
                 full_path = os.path.join(root, file)
                 
-                # Path parts extract karo: Date aur Panchayat folder name se
-                # Structure: static/user_data/Demand Form/{Date}/{Panchayat}/{File}
-                rel_path = os.path.relpath(full_path, 'static') # URL generation ke liye
-                path_parts = os.path.relpath(full_path, DEMAND_SAVE_DIR).split(os.sep)
+                # FIX: Robust Path Parsing for Panchayat Name
+                rel_path = os.path.relpath(full_path, DEMAND_SAVE_DIR)
+                # Slash ko normalise karein taaki Windows/Linux dono pe chale
+                path_parts = rel_path.replace('\\', '/').split('/')
                 
-                date_folder = path_parts[0] if len(path_parts) > 1 else "Unknown"
-                panchayat_folder = path_parts[1] if len(path_parts) > 2 else "Unknown"
+                # Structure: Date/Panchayat/File.csv
+                date_folder = path_parts[0] if len(path_parts) > 0 else "Unknown"
+                panchayat_folder = path_parts[1] if len(path_parts) > 1 else "Unknown"
                 
-                # File creation time
+                # FIX: Convert File Timestamp to IST
                 timestamp = os.path.getmtime(full_path)
-                created_time = datetime.fromtimestamp(timestamp).strftime('%I:%M %p')
+                file_dt_utc = datetime.fromtimestamp(timestamp, timezone.utc)
+                file_dt_ist = file_dt_utc.astimezone(IST)
+                created_time = file_dt_ist.strftime('%I:%M %p')
                 
                 files_list.append({
                     'filename': file,
                     'date': date_folder,
                     'panchayat': panchayat_folder,
                     'time': created_time,
-                    'path': rel_path,
+                    'path': os.path.relpath(full_path, 'static'), # URL ke liye 'static' ke relative path
                     'timestamp': timestamp # Sorting ke liye
                 })
 
@@ -571,8 +580,6 @@ def downloads():
     files_list.sort(key=lambda x: x['timestamp'], reverse=True)
     
     return render_template('downloads.html', files=files_list)
-
-# app.py mein is function ko update karein
 
 @app.route('/merge-downloads', methods=['POST'])
 def merge_downloads():
@@ -693,6 +700,8 @@ def find_scheme_name_by_work_code(panchayat, target_work_code):
     return None
 
 # 1. View/Print Saved Demand (Updated)
+# app.py (Partial Update for view_demand route)
+
 @app.route('/view-demand')
 def view_demand():
     file_path = request.args.get('path')
@@ -701,52 +710,44 @@ def view_demand():
     if not os.path.exists(full_path):
         return "File not found"
     
-    # CSV Data Parse karo
+    # 1. FIX: Robust Panchayat Name Extraction
+    # Normalize path separators (handle both \ and /)
+    norm_path = file_path.replace('\\', '/')
+    path_parts = norm_path.split('/')
+    
+    # Logic: .../Date/PanchayatName/FileName.csv
+    # We take the folder immediately containing the file (index -2)
+    panchayat = "Unknown"
+    if len(path_parts) >= 2:
+        panchayat = path_parts[-2]
+
+    # CSV Parsing Logic (Same as before)
     labourers = []
     work_code = ""
-    
     try:
         with open(full_path, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                # CSV headers match karo (save format ke hisaab se)
                 name = row.get('Name of Applicant') or row.get('Name')
                 card = row.get('Job card number') or row.get('Job Card')
                 w_code = row.get('Allocation Work Code') or row.get('Work Code')
-                
                 if w_code: work_code = w_code
-                
                 if name and card:
-                    labourers.append({
-                        'sr': len(labourers) + 1,
-                        'name': name,
-                        'card': card
-                    })
+                    labourers.append({'sr': len(labourers) + 1, 'name': name, 'card': card})
     except Exception as e:
         return f"Error reading file: {e}"
 
-    # Folder structure se Panchayat aur Date nikalo
-    # Path format: user_data/Demand Form/{Date}/{Panchayat}/{File}
-    path_parts = file_path.split(os.sep)
-    panchayat = "Unknown"
-    
-    # Try to extract panchayat name reliably
-    if len(path_parts) >= 2:
-        # File folder ke just upar wala folder panchayat hota hai
-        panchayat = path_parts[-2]
-
-    # --- FIX START: Dynamically fetch Scheme Name ---
+    # Scheme Name Logic (Same as before)
     scheme_full_name = find_scheme_name_by_work_code(panchayat, work_code)
-    
     if not scheme_full_name:
         scheme_full_name = 'Scheme Name Not Found (File missing in Public Data)'
-    # --- FIX END ---
 
     data = {
         'panchayat': panchayat,
         'scheme_full_name': scheme_full_name,
         'work_code': work_code,
-        'date': datetime.now().strftime('%d/%m/%Y'), # Print date as today
+        # 2. FIX: Add Time to Date string for Watermark
+        'date': datetime.now().strftime('%d/%m/%Y %I:%M %p'), 
         'labourers': labourers
     }
     

@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ data.work_code[-6:] if data.work_code else 'Demand_Print' }}</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script>
         tailwind.config = {
             theme: {
@@ -18,7 +20,7 @@
                         sans: ['"Noto Sans Devanagari"', 'sans-serif'],
                     },
                     screens: {
-                        'print': {'raw': 'print'},
+                        'print': { 'raw': 'print' },
                     }
                 }
             }
@@ -33,36 +35,43 @@
         }
 
         @media print {
-            html, body {
+
+            html,
+            body {
                 width: 210mm;
                 height: 100%;
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
-                -webkit-print-color-adjust: exact; 
+                -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            
-            .no-print { 
-                display: none !important; 
+
+            .no-print {
+                display: none !important;
             }
 
             .page-container {
                 width: 210mm !important;
-                height: 285mm !important; 
+                height: 285mm !important;
                 margin: 0 auto !important;
-                padding: 10mm 15mm !important; 
+                padding: 10mm 15mm !important;
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between; 
+                justify-content: space-between;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
-                overflow: hidden; 
+                overflow: hidden;
             }
 
-            table { width: 100%; border-collapse: collapse; }
-            td, th {
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            td,
+            th {
                 padding: 0 4px !important;
                 vertical-align: middle;
                 border: 1px solid black;
@@ -71,23 +80,34 @@
                 white-space: nowrap;
                 overflow: hidden;
             }
-            td.name-cell { white-space: normal; line-height: 1.1; }
+
+            td.name-cell {
+                white-space: normal;
+                line-height: 1.1;
+            }
         }
     </style>
 </head>
+
 <body class="bg-gray-600 flex justify-center min-h-screen font-sans text-gray-900">
 
     <div class="no-print fixed top-4 right-4 z-50 flex flex-col gap-2">
-        <button onclick="window.print()" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        <button onclick="window.print()"
+            class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             Print Demand
         </button>
-        
-        <button onclick="downloadCSV()" class="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+
+        <button onclick="downloadCSV()"
+            class="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-lg transition-transform transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             Download CSV (App)
         </button>
@@ -97,8 +117,9 @@
         </div>
     </div>
 
-    <div class="page-container bg-white w-[210mm] min-h-[297mm] mx-auto my-8 p-[15mm_20mm] shadow-2xl flex flex-col justify-between print:shadow-none print:my-0">
-        
+    <div
+        class="page-container bg-white w-[210mm] min-h-[297mm] mx-auto my-8 p-[15mm_20mm] shadow-2xl flex flex-col justify-between print:shadow-none print:my-0">
+
         <div class="flex-grow">
             <div class="flex justify-between items-start mb-2 print:mb-2">
                 <div class="text-base leading-relaxed">
@@ -113,7 +134,8 @@
             <div class="mb-2 print:mb-2">
                 <div class="flex items-start gap-2">
                     <span class="font-bold whitespace-nowrap">विषय :-</span>
-                    <span class="font-bold underline underline-offset-4">मनरेगा में मजदूरों का डिमांड के सम्बन्ध में</span>
+                    <span class="font-bold underline underline-offset-4">मनरेगा में मजदूरों का डिमांड के सम्बन्ध
+                        में</span>
                 </div>
             </div>
 
@@ -143,19 +165,20 @@
                             <td></td>
                         </tr>
                         {% endfor %}
-                        
+
                         {% set total_rows = 20 %}
                         {% set current_rows = data.labourers|length %}
                         {% set remaining = total_rows - current_rows %}
-                        
+
                         {% if remaining > 0 %}
-                            {% for i in range(remaining) %}
-                            <tr>
-                                <td class="text-center">{{ current_rows + loop.index }}</td> <td></td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            {% endfor %}
+                        {% for i in range(remaining) %}
+                        <tr>
+                            <td class="text-center">{{ current_rows + loop.index }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
                         {% endif %}
                     </tbody>
                 </table>
@@ -165,7 +188,8 @@
         <div class="mt-4 pt-4 print:pt-2">
             <div class="flex justify-between items-end text-center font-bold text-[10pt]">
                 <div class="w-[18%] flex flex-col items-center gap-6">
-                    <div class="h-6"></div> <div class="border-t border-dashed border-gray-400 w-full pt-1">लाभुक</div>
+                    <div class="h-6"></div>
+                    <div class="border-t border-dashed border-gray-400 w-full pt-1">लाभुक</div>
                 </div>
                 <div class="w-[18%] flex flex-col items-center gap-6">
                     <div class="h-6"></div>
@@ -184,10 +208,11 @@
                     <div class="border-t border-dashed border-gray-400 w-full pt-1">मुखिया</div>
                 </div>
             </div>
-            
-            <div class="text-[8px] text-gray-400 text-right mt-1 hidden print:block">
-                Generated via NregaBot Tools • {{ data.date }}
-            </div>
+
+            <div class="mt-8 pt-2 border-t border-gray-300 flex justify-between items-center text-[8px] text-gray-400 font-mono">
+            <span>System ID: {{ data.work_code[-6:] if data.work_code else 'GEN' }}</span>
+            <span>Generated via NregaBot • {{ data.date }}</span>
+        </div>
         </div>
     </div>
 
@@ -197,48 +222,49 @@
             const workCode = "{{ data.work_code }}";
             const labourers = [
                 {% for labour in data.labourers %}
-                { name: "{{ labour.name }}", card: "{{ labour.card }}" },
-                {% endfor %}
+        { name: "{{ labour.name }}", card: "{{ labour.card }}" },
+        {% endfor %}
             ];
 
-            if (labourers.length === 0) {
-                alert("No labourers to export!");
-                return;
-            }
+        if (labourers.length === 0) {
+            alert("No labourers to export!");
+            return;
+        }
 
-            // Define CSV Header matching your Desktop App expectations
-            // Columns: Name of Applicant, Job card number, Allocation Work Code
-            const header = ["Name of Applicant", "Job card number", "Allocation Work Code"];
-            
-            // Build Rows
-            const rows = labourers.map(l => [
-                `"${l.name}"`,  // Quote to handle commas in names
-                `"${l.card}"`,
-                `"${workCode}"`
-            ]);
+        // Define CSV Header matching your Desktop App expectations
+        // Columns: Name of Applicant, Job card number, Allocation Work Code
+        const header = ["Name of Applicant", "Job card number", "Allocation Work Code"];
 
-            // Combine
-            const csvContent = [
-                header.join(","),
-                ...rows.map(r => r.join(","))
-            ].join("\n");
+        // Build Rows
+        const rows = labourers.map(l => [
+            `"${l.name}"`,  // Quote to handle commas in names
+            `"${l.card}"`,
+            `"${workCode}"`
+        ]);
 
-            // Create Blob and Download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            
-            // Create filename: Demand_Panchayat_WorkCode.csv
-            const panchayat = "{{ data.panchayat }}".replace(/[^a-z0-9]/gi, '_');
-            const safeCode = workCode.replace(/[^a-z0-9]/gi, '').slice(-6);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Demand_${panchayat}_${safeCode}.csv`);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // Combine
+        const csvContent = [
+            header.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n");
+
+        // Create Blob and Download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        // Create filename: Demand_Panchayat_WorkCode.csv
+        const panchayat = "{{ data.panchayat }}".replace(/[^a-z0-9]/gi, '_');
+        const safeCode = workCode.replace(/[^a-z0-9]/gi, '').slice(-6);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Demand_${panchayat}_${safeCode}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         }
     </script>
 
 </body>
+
 </html>

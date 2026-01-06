@@ -74,29 +74,44 @@
     </div>
 
     <div>
-        <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">2. Select Labour List</label>
-        
-        <div class="flex gap-2 mb-3 text-xs">
-            <button type="button" id="tab-labour-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload CSV</button>
-            <button type="button" id="tab-labour-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
+        <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300">2. Select Labour List</label>
         </div>
 
-        <div id="source-labour-upload" class="block">
-            <div class="flex items-center gap-3">
-                <input type="file" id="labour_csv" accept=".csv" class="hidden">
-                <label for="labour_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <i class="fa-solid fa-users mr-2 text-green-600"></i> Choose File
-                </label>
-                <span id="labour-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+        <div class="mb-3 flex items-center bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+            <input type="checkbox" id="chk-diff-panchayat" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+            <label for="chk-diff-panchayat" class="ml-2 text-xs font-medium text-gray-600 dark:text-gray-300 cursor-pointer select-none">
+                Select from different Panchayat (Manual)
+            </label>
+        </div>
+
+        <div id="labour-manual-area" class="hidden animate-fade-in">
+            <div class="flex gap-2 mb-3 text-xs">
+                <button type="button" id="tab-labour-upload" class="px-3 py-1 bg-primary text-white rounded transition-colors">Upload CSV</button>
+                <button type="button" id="tab-labour-server" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors">From Server</button>
+            </div>
+
+            <div id="source-labour-upload" class="block">
+                <div class="flex items-center gap-3">
+                    <input type="file" id="labour_csv" accept=".csv" class="hidden">
+                    <label for="labour_csv" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fa-solid fa-users mr-2 text-green-600"></i> Choose File
+                    </label>
+                    <span id="labour-file-name" class="text-xs text-gray-500 dark:text-gray-400 italic truncate max-w-[150px]">Optional</span>
+                </div>
+            </div>
+
+            <div id="source-labour-server" class="hidden space-y-2">
+                <div class="text-xs text-gray-500 mb-1">Select a file from the chosen Block:</div>
+                <select id="labour-sel-file" disabled class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white">
+                    <option value="">-- Select Labour File --</option>
+                </select>
+                <button type="button" id="btn-load-labour-server" disabled class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Labour List</button>
             </div>
         </div>
 
-        <div id="source-labour-server" class="hidden space-y-2">
-            <div class="text-xs text-gray-500 mb-1">Select a file from the chosen Block:</div>
-            <select id="labour-sel-file" disabled class="w-full p-2 text-xs border rounded bg-white dark:bg-gray-900 dark:border-gray-600 dark:text-white">
-                <option value="">-- Select Labour File --</option>
-            </select>
-            <button type="button" id="btn-load-labour-server" disabled class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded disabled:opacity-50">Load Labour List</button>
+        <div id="labour-auto-status" class="text-xs text-gray-500 dark:text-gray-400 italic mb-2 min-h-[1.2em]">
+            <i class="fa-solid fa-circle-info mr-1"></i> Waiting for Scheme selection...
         </div>
 
         <div id="labour-stats" class="hidden mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex justify-between text-xs font-medium text-blue-800 dark:text-blue-200 animate-fade-in">
@@ -108,7 +123,6 @@
 </div>
 
 <form method="post" action="{{ url_for('demand_tool') }}" id="demand-form" target="_blank" class="space-y-6">
-    
     <input type="hidden" name="scheme_full_name" id="hidden_scheme_name">
     <input type="hidden" name="work_code" id="hidden_work_code">
 
@@ -145,10 +159,8 @@
                     <input type="text" id="labour-search-input" placeholder="Type village e.g. 12/ or Suffix..." 
                         class="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500" autocomplete="off">
                     
-                    <div id="search-dropdown" class="hidden absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto custom-scrollbar">
-                        </div>
+                    <div id="search-dropdown" class="hidden absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto custom-scrollbar"></div>
                 </div>
-                
                 <button type="button" id="btn-add-individual" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg whitespace-nowrap">
                     <i class="fa-solid fa-plus"></i> Add
                 </button>
@@ -159,8 +171,7 @@
                     <span><i class="fa-solid fa-people-group mr-1"></i> Suggested Neighbours</span>
                     <span class="text-[10px] opacity-70">(Next available)</span>
                 </div>
-                <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                </div>
+                <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar"></div>
             </div>
         </div>
     </div>
@@ -205,6 +216,10 @@
             <i class="fa-solid fa-print mr-2"></i> Generate & Download
         </button>
         
+        <button type="button" onclick="manualSaveOnly()" class="w-full md:w-auto inline-flex justify-center items-center px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white text-base font-medium rounded-lg shadow hover:shadow-md transition-colors">
+            <i class="fa-solid fa-floppy-disk mr-2"></i> Save Only
+        </button>
+        
         <button type="button" id="btn-reset-all" class="w-full md:w-auto inline-flex justify-center items-center px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 text-base font-medium rounded-lg transition-colors border border-red-200 dark:border-red-800/50">
             <i class="fa-solid fa-rotate-left mr-2"></i> Reset All
         </button>
@@ -218,7 +233,8 @@
     let currentLabourIndex = 0;
     let publicDataStructure = {};
     let currentMode = 'batch';
-    let lastSearchedIndex = -1; 
+    let lastSearchedIndex = -1;
+    let lastSchemeFname = ''; // To remember for auto-load
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
@@ -226,21 +242,44 @@
         setupModeToggles();
         setupTabs('scheme');
         setupTabs('labour');
+        setupManualToggle(); // NEW
     });
+
+    // --- NEW: MANUAL TOGGLE LOGIC ---
+    function setupManualToggle() {
+        const checkbox = document.getElementById('chk-diff-panchayat');
+        const manualArea = document.getElementById('labour-manual-area');
+        const statusArea = document.getElementById('labour-auto-status');
+
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                manualArea.classList.remove('hidden');
+                statusArea.innerHTML = '<i class="fa-solid fa-hand-pointer mr-1"></i> Manual selection enabled.';
+                resetFileDropdowns(true); // Enable labour dropdowns
+            } else {
+                manualArea.classList.add('hidden');
+                // Try to auto-load again if scheme matches
+                if(lastSchemeFname) {
+                    const dist = document.getElementById('global-sel-dist').value;
+                    const block = document.getElementById('global-sel-block').value;
+                    autoLoadLabour(dist, block, lastSchemeFname);
+                } else {
+                    statusArea.innerHTML = '<i class="fa-solid fa-circle-info mr-1"></i> Waiting for Scheme selection...';
+                }
+            }
+        });
+    }
 
     // --- SOUND FUNCTION ---
     function playSuccessSound() {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); 
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        
         oscillator.start();
         gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1);
         oscillator.stop(audioContext.currentTime + 0.1);
@@ -252,15 +291,12 @@
         const tSv = document.getElementById(`tab-${prefix}-server`);
         const dUp = document.getElementById(`source-${prefix}-upload`);
         const dSv = document.getElementById(`source-${prefix}-server`);
-
         if(!tUp || !tSv) return;
-
         tUp.addEventListener('click', () => {
             dUp.classList.remove('hidden'); dSv.classList.add('hidden');
             tUp.className = "px-3 py-1 bg-primary text-white rounded transition-colors";
             tSv.className = "px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 transition-colors";
         });
-
         tSv.addEventListener('click', () => {
             dSv.classList.remove('hidden'); dUp.classList.add('hidden');
             tSv.className = "px-3 py-1 bg-primary text-white rounded transition-colors";
@@ -307,7 +343,10 @@
         const dist = document.getElementById('global-sel-dist').value;
         const block = this.value;
         updateFileDropdown('scheme', dist, block);
-        updateFileDropdown('labour', dist, block);
+        // Only update labour dropdown if manual mode is ON
+        if(document.getElementById('chk-diff-panchayat').checked) {
+            updateFileDropdown('labour', dist, block);
+        }
     }
 
     function updateFileDropdown(type, dist, block) {
@@ -337,13 +376,19 @@
         loadBtn.onclick = () => fetchServerFile(type, dist, block, fileSel.value);
     }
 
-    function resetFileDropdowns() {
+    function resetFileDropdowns(forceEnable = false) {
         ['scheme', 'labour'].forEach(type => {
             const el = document.getElementById(`${type}-sel-file`);
             el.innerHTML = `<option value="">-- Select File --</option>`;
-            el.disabled = true;
+            if (!forceEnable) el.disabled = true;
             document.getElementById(`btn-load-${type}-server`).disabled = true;
         });
+        if(forceEnable) {
+            // Re-populate if manual mode just enabled
+            const dist = document.getElementById('global-sel-dist').value;
+            const block = document.getElementById('global-sel-block').value;
+            if(dist && block) updateFileDropdown('labour', dist, block);
+        }
     }
 
     async function fetchServerFile(prefix, dist, block, fname) {
@@ -361,12 +406,46 @@
             const data = await res.json();
             
             if(data.content) {
-                if(prefix === 'scheme') processSchemeCSV(data.content, `Server: ${fname}`);
-                else processLabourCSV(data.content, `Server: ${fname}`);
+                if(prefix === 'scheme') {
+                    processSchemeCSV(data.content, `Server: ${fname}`);
+                    // --- NEW: TRIGGER AUTO LOAD LABOUR ---
+                    lastSchemeFname = fname;
+                    if (!document.getElementById('chk-diff-panchayat').checked) {
+                        autoLoadLabour(dist, block, fname);
+                    }
+                }
+                else {
+                    processLabourCSV(data.content, `Server: ${fname}`);
+                }
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> Loaded!';
             } else { alert('File empty'); btn.innerHTML = originalText; }
         } catch(e) { alert('Error loading file'); btn.innerHTML = originalText; } 
         finally { setTimeout(() => { if(btn.innerHTML.includes('Loaded')) btn.innerHTML = originalText; btn.disabled = false; }, 2000); }
+    }
+
+    // --- NEW: AUTO LOAD LOGIC ---
+    function autoLoadLabour(dist, block, schemeFname) {
+        const statusArea = document.getElementById('labour-auto-status');
+        const labourFname = schemeFname.replace('_schemes.csv', '_jobcard.csv');
+        
+        // Check if exists
+        let exists = false;
+        if(publicDataStructure[dist] && publicDataStructure[dist][block]) {
+            exists = publicDataStructure[dist][block].includes(labourFname);
+        }
+
+        if(exists) {
+            statusArea.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-primary"></i> Auto-loading: <strong>${labourFname}</strong>...`;
+            // Call fetch for labour
+            fetchServerFile('labour', dist, block, labourFname).then(() => {
+                statusArea.innerHTML = `<i class="fa-solid fa-check-circle text-green-600"></i> Auto-loaded: <strong>${labourFname}</strong>`;
+                // Also visually select it in the hidden dropdown just in case
+                const labourSel = document.getElementById('labour-sel-file');
+                if(labourSel) labourSel.value = labourFname;
+            });
+        } else {
+            statusArea.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-orange-500"></i> Auto-load failed. <strong>${labourFname}</strong> not found. Please use manual selection.`;
+        }
     }
 
     // --- MODE TOGGLES ---
@@ -411,7 +490,8 @@
                 allLabours.push({ 
                     name: cols[0], 
                     card: cols[1],
-                    searchStr: (cols[0] + " " + cols[1]).toLowerCase()
+                    searchStr: (cols[0] + " " + cols[1]).toLowerCase(),
+                    index: index // KEEP ORIGINAL INDEX FOR SORTING
                 });
             }
         });
@@ -421,7 +501,7 @@
         setupSmartSearch();
     }
 
-    // --- SEARCH & INPUT LOGIC (UPDATED WITH VILLAGE SEARCH) ---
+    // --- SEARCH & INPUT LOGIC ---
     function setupSmartSearch() {
         const input = document.getElementById('labour-search-input');
         const dropdown = document.getElementById('search-dropdown');
@@ -433,9 +513,8 @@
                 return;
             }
 
-            // --- IMPROVEMENT 1: VILLAGE CODE DETECTION (e.g. "12/") ---
             const isVillageSearch = term.endsWith('/');
-            const maxResults = isVillageSearch ? 500 : 15; // Show way more for village scan
+            const maxResults = isVillageSearch ? 500 : 15; 
 
             const results = allLabours
                 .map((l, index) => {
@@ -443,7 +522,6 @@
                     const cardLower = l.card.toLowerCase();
                     const nameLower = l.name.toLowerCase();
 
-                    // If searching "12/", checking if card contains it
                     if (isVillageSearch) {
                         if (cardLower.includes(term)) score += 100;
                     } else {
@@ -456,7 +534,6 @@
                     return { labour: l, index: index, score: score };
                 })
                 .filter(item => item.score > 0)
-                // For village search, keep original list order (Index). For normal search, use Score.
                 .sort((a, b) => isVillageSearch ? a.index - b.index : b.score - a.score)
                 .slice(0, maxResults);
 
@@ -491,11 +568,9 @@
                 selectLabourFromSearch(item.index);
                 dropdown.classList.add('hidden');
                 
-                // Keep Village Code Logic
                 const inputEl = document.getElementById('labour-search-input');
                 const currentVal = inputEl.value;
                 const slashIndex = currentVal.lastIndexOf('/');
-                
                 if (slashIndex !== -1) {
                     inputEl.value = currentVal.substring(0, slashIndex + 1);
                 } else {
@@ -505,7 +580,6 @@
             };
             dropdown.appendChild(div);
         });
-        
         dropdown.classList.remove('hidden');
     }
 
@@ -515,7 +589,7 @@
         refreshSuggestions(index);
     }
 
-    // --- IMPROVEMENT 2: SUGGESTION AUTO-SCROLL/UPDATE ---
+    // --- SUGGESTION AUTO-SCROLL ---
     function refreshSuggestions(baseIndex) {
         const box = document.getElementById('suggestions-box');
         const list = document.getElementById('suggestions-list');
@@ -530,7 +604,6 @@
         });
 
         let count = 0;
-        // Start showing from next index immediately
         let i = baseIndex + 1;
         
         while(i < allLabours.length && count < 50) {
@@ -541,7 +614,6 @@
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded shadow-sm text-sm animate-fade-in";
                 
-                // Slight highlight for the VERY NEXT one
                 if (count === 0) div.classList.add('border-l-4', 'border-green-500');
 
                 div.innerHTML = `
@@ -558,18 +630,13 @@
         if(count > 0) box.classList.remove('hidden');
         else box.classList.add('hidden');
         
-        // Ensure scroll is at top
-        list.scrollTop = 0;
+        list.scrollTop = 0; // Auto-scroll to top
     }
 
-    // --- ADD LABOUR LOGIC ---
-    
     window.addSingleLabour = function(index) {
         if(index >= allLabours.length) return;
         const success = addToTable(allLabours[index]);
         if(success) {
-            // Update suggestions to show NEXT neighbours immediately
-            // This creates the "Auto Scroll" effect by putting next item at top
             lastSearchedIndex = index;
             refreshSuggestions(index);
         }
@@ -581,17 +648,14 @@
             const inputVal = document.getElementById('labour-search-input').value;
             if(!inputVal) return;
             const foundIndex = allLabours.findIndex(l => `${l.name} | ${l.card}` === inputVal);
-            
             if(foundIndex !== -1) {
                 addSingleLabour(foundIndex);
-                
                 const slashIndex = inputVal.lastIndexOf('/');
                 if (slashIndex !== -1) {
                     document.getElementById('labour-search-input').value = inputVal.substring(0, slashIndex + 1);
                 } else {
                     document.getElementById('labour-search-input').value = '';
                 }
-                
                 lastSearchedIndex = foundIndex; 
                 refreshSuggestions(foundIndex);
             } else {
@@ -602,14 +666,11 @@
 
     function addToTable(labour) {
         const tbody = document.getElementById('labour-tbody');
-        
         let isDuplicate = false;
         tbody.querySelectorAll('tr').forEach(tr => {
             const existingName = tr.querySelector('input[name^="labour_name_"]').value;
             const existingCard = tr.querySelector('input[name^="job_card_"]').value;
-            if (existingCard === labour.card && existingName === labour.name) {
-                isDuplicate = true;
-            }
+            if (existingCard === labour.card && existingName === labour.name) isDuplicate = true;
         });
 
         if (isDuplicate) {
@@ -627,9 +688,7 @@
             <td class="px-4 py-3 text-center"><button type="button" class="text-red-500 hover:text-red-700" onclick="removeRow(this)"><i class="fa-solid fa-xmark"></i></button></td>
         `;
         tbody.appendChild(tr);
-        
         playSuccessSound();
-
         updatePreviewTitle();
         return true;
     }
@@ -645,7 +704,6 @@
         const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
         let addedCount = 0;
         let attemptIndex = currentLabourIndex;
-        
         while(addedCount < countToAdd && attemptIndex < allLabours.length) {
             const success = addToTable(allLabours[attemptIndex]);
             if(success) addedCount++;
@@ -660,29 +718,18 @@
         const panchayat = document.getElementById('panchayat').value;
         const work_code = document.getElementById('hidden_work_code').value;
         const rows = document.querySelectorAll('#labour-tbody tr');
-        
         if(!work_code || rows.length === 0) return; 
-
         const labourers = [];
         rows.forEach(row => {
             const nameInput = row.querySelector('input[name^="labour_name_"]');
             const cardInput = row.querySelector('input[name^="job_card_"]');
-            if(nameInput && cardInput) {
-                labourers.push({ name: nameInput.value, card: cardInput.value });
-            }
+            if(nameInput && cardInput) labourers.push({ name: nameInput.value, card: cardInput.value });
         });
-
         fetch('/api/save-demand', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                panchayat: panchayat,
-                work_code: work_code,
-                labourers: labourers
-            })
-        }).then(res => res.json())
-          .then(data => console.log("Auto-save:", data.message))
-          .catch(err => console.error("Auto-save failed", err));
+            body: JSON.stringify({ panchayat: panchayat, work_code: work_code, labourers: labourers })
+        }).then(res => res.json()).then(data => console.log("Auto-save:", data.message)).catch(err => console.error("Auto-save failed", err));
     }
 
     document.getElementById('btn-reset-all').addEventListener('click', () => {
@@ -692,7 +739,6 @@
              updateStats();
              updatePreviewTitle();
              if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
-
              document.getElementById('hidden_scheme_name').value = '';
              document.getElementById('hidden_work_code').value = '';
              document.getElementById('panchayat').value = '';
@@ -764,5 +810,55 @@
         document.getElementById('preview_work_code').textContent = data.code;
         document.getElementById('scheme-preview-text').classList.remove('hidden');
     });
+
+    // --- NEW: Manual Save Function ---
+    async function manualSaveOnly() {
+        const panchayat = document.getElementById('panchayat').value;
+        const work_code = document.getElementById('hidden_work_code').value;
+        const rows = document.querySelectorAll('#labour-tbody tr');
+        
+        if(!work_code) { alert("Please select a Scheme first."); return; }
+        if(rows.length === 0) { alert("Please add at least one labour."); return; }
+
+        const labourers = [];
+        rows.forEach(row => {
+            const nameInput = row.querySelector('input[name^="labour_name_"]');
+            const cardInput = row.querySelector('input[name^="job_card_"]');
+            if(nameInput && cardInput) {
+                labourers.push({ name: nameInput.value, card: cardInput.value });
+            }
+        });
+
+        // Button Loading State
+        const btn = document.querySelector('button[onclick="manualSaveOnly()"]');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/save-demand', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    panchayat: panchayat,
+                    work_code: work_code,
+                    labourers: labourers
+                })
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                alert("✅ File Saved Successfully!\nCheck 'Saved Files' tab.");
+            } else {
+                alert("❌ Error: " + data.message);
+            }
+        } catch(err) {
+            console.error(err);
+            alert("❌ Save Failed.");
+        } finally {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    }
 </script>
 {% endblock %}
