@@ -142,10 +142,10 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search & Select Labour (Type Name or JC)</label>
             <div class="flex gap-2 mb-4 relative">
                 <div class="relative w-full">
-                    <input type="text" id="labour-search-input" placeholder="Type suffix e.g. 2/68 or Name..." 
+                    <input type="text" id="labour-search-input" placeholder="Type village e.g. 12/ or Suffix..." 
                         class="w-full p-3 text-sm border rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-green-500" autocomplete="off">
                     
-                    <div id="search-dropdown" class="hidden absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto">
+                    <div id="search-dropdown" class="hidden absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto custom-scrollbar">
                         </div>
                 </div>
                 
@@ -157,7 +157,7 @@
             <div id="suggestions-box" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3">
                 <div class="text-xs font-bold text-yellow-800 dark:text-yellow-200 mb-2 uppercase tracking-wide flex justify-between items-center">
                     <span><i class="fa-solid fa-people-group mr-1"></i> Suggested Neighbours</span>
-                    <span class="text-[10px] opacity-70">(Scroll for more)</span>
+                    <span class="text-[10px] opacity-70">(Next available)</span>
                 </div>
                 <div id="suggestions-list" class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
                 </div>
@@ -167,9 +167,7 @@
 
     <div class="flex justify-between items-center mt-6">
         <h3 id="form-preview-title" class="text-lg font-bold text-gray-800 dark:text-gray-100">Form Preview (0 Labours)</h3>
-        <button type="button" id="btn-reset-labours" class="text-xs text-red-500 hover:text-red-700 font-medium transition-colors">
-            <i class="fa-solid fa-trash mr-1"></i> Reset Queue
-        </button>
+        <div class="h-4"></div>
     </div>
 
     <div id="scheme-preview-text" class="hidden bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 p-4 rounded-r-lg mb-4">
@@ -206,6 +204,10 @@
         <button type="submit" onclick="autoSaveDemand()" class="w-full md:w-auto inline-flex justify-center items-center px-8 py-3 bg-primary hover:bg-blue-700 text-white text-base font-medium rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
             <i class="fa-solid fa-print mr-2"></i> Generate & Download
         </button>
+        
+        <button type="button" id="btn-reset-all" class="w-full md:w-auto inline-flex justify-center items-center px-6 py-3 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/30 dark:text-red-400 text-base font-medium rounded-lg transition-colors border border-red-200 dark:border-red-800/50">
+            <i class="fa-solid fa-rotate-left mr-2"></i> Reset All
+        </button>
     </div>
 </form>
 
@@ -216,17 +218,35 @@
     let currentLabourIndex = 0;
     let publicDataStructure = {};
     let currentMode = 'batch';
-    let lastSearchedIndex = -1; // Track for suggestions
+    let lastSearchedIndex = -1; 
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
         await initServerData();
         setupModeToggles();
-        setupTabs('scheme'); // RESTORED
-        setupTabs('labour'); // RESTORED
+        setupTabs('scheme');
+        setupTabs('labour');
     });
 
-    // --- TAB LOGIC (RESTORED) ---
+    // --- SOUND FUNCTION ---
+    function playSuccessSound() {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.1);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
+    // --- TAB LOGIC ---
     function setupTabs(prefix) {
         const tUp = document.getElementById(`tab-${prefix}-upload`);
         const tSv = document.getElementById(`tab-${prefix}-server`);
@@ -365,7 +385,6 @@
             document.getElementById('panel-batch').classList.add('hidden');
             this.className = "text-sm font-bold text-primary border-b-2 border-primary pb-1";
             document.getElementById('mode-batch').className = "text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 pb-1";
-            updateIndividualDatalist();
         });
     }
 
@@ -382,7 +401,6 @@
         populateSchemeDropdown(schemes);
     }
 
-    // --- UPDATED DATA PROCESSING ---
     function processLabourCSV(text, filename) {
         const rows = text.split(/\r?\n/);
         allLabours = [];
@@ -393,7 +411,6 @@
                 allLabours.push({ 
                     name: cols[0], 
                     card: cols[1],
-                    // Pre-compute normalized fields for faster search
                     searchStr: (cols[0] + " " + cols[1]).toLowerCase()
                 });
             }
@@ -401,12 +418,10 @@
         currentLabourIndex = 0;
         document.getElementById('labour-stats').classList.remove('hidden');
         updateStats();
-        
-        // Initialize Smart Search instead of Datalist
         setupSmartSearch();
     }
 
-    // --- NEW SMART SEARCH LOGIC ---
+    // --- SEARCH & INPUT LOGIC (UPDATED WITH VILLAGE SEARCH) ---
     function setupSmartSearch() {
         const input = document.getElementById('labour-search-input');
         const dropdown = document.getElementById('search-dropdown');
@@ -418,32 +433,36 @@
                 return;
             }
 
-            // Smart Sorting Logic
+            // --- IMPROVEMENT 1: VILLAGE CODE DETECTION (e.g. "12/") ---
+            const isVillageSearch = term.endsWith('/');
+            const maxResults = isVillageSearch ? 500 : 15; // Show way more for village scan
+
             const results = allLabours
                 .map((l, index) => {
                     let score = 0;
                     const cardLower = l.card.toLowerCase();
                     const nameLower = l.name.toLowerCase();
 
-                    // Priority 1: Exact Suffix Match (e.g. "2/68" in "...002/68")
-                    if (cardLower.endsWith(term)) score += 100;
-                    // Priority 2: Contains term in Card
-                    else if (cardLower.includes(term)) score += 50;
-                    // Priority 3: Name starts with term
-                    else if (nameLower.startsWith(term)) score += 30;
-                    // Priority 4: Name contains term
-                    else if (nameLower.includes(term)) score += 10;
+                    // If searching "12/", checking if card contains it
+                    if (isVillageSearch) {
+                        if (cardLower.includes(term)) score += 100;
+                    } else {
+                        if (cardLower.endsWith(term)) score += 100;
+                        else if (cardLower.includes(term)) score += 50;
+                        else if (nameLower.startsWith(term)) score += 30;
+                        else if (nameLower.includes(term)) score += 10;
+                    }
 
                     return { labour: l, index: index, score: score };
                 })
                 .filter(item => item.score > 0)
-                .sort((a, b) => b.score - a.score) // High score first
-                .slice(0, 15); // Show top 15 results
+                // For village search, keep original list order (Index). For normal search, use Score.
+                .sort((a, b) => isVillageSearch ? a.index - b.index : b.score - a.score)
+                .slice(0, maxResults);
 
             renderDropdown(results);
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!input.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.classList.add('hidden');
@@ -471,7 +490,18 @@
             div.onclick = () => {
                 selectLabourFromSearch(item.index);
                 dropdown.classList.add('hidden');
-                document.getElementById('labour-search-input').value = '';
+                
+                // Keep Village Code Logic
+                const inputEl = document.getElementById('labour-search-input');
+                const currentVal = inputEl.value;
+                const slashIndex = currentVal.lastIndexOf('/');
+                
+                if (slashIndex !== -1) {
+                    inputEl.value = currentVal.substring(0, slashIndex + 1);
+                } else {
+                    inputEl.value = '';
+                }
+                inputEl.focus(); 
             };
             dropdown.appendChild(div);
         });
@@ -485,7 +515,7 @@
         refreshSuggestions(index);
     }
 
-    // --- UPDATED SUGGESTIONS LOGIC (SCROLLABLE 50+) ---
+    // --- IMPROVEMENT 2: SUGGESTION AUTO-SCROLL/UPDATE ---
     function refreshSuggestions(baseIndex) {
         const box = document.getElementById('suggestions-box');
         const list = document.getElementById('suggestions-list');
@@ -500,9 +530,9 @@
         });
 
         let count = 0;
+        // Start showing from next index immediately
         let i = baseIndex + 1;
         
-        // Increased limit to 50 for scrolling
         while(i < allLabours.length && count < 50) {
             const l = allLabours[i];
             const key = `${l.name}|${l.card}`;
@@ -510,6 +540,10 @@
             if(!addedMap.has(key)) {
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-white dark:bg-gray-800 p-2 rounded shadow-sm text-sm animate-fade-in";
+                
+                // Slight highlight for the VERY NEXT one
+                if (count === 0) div.classList.add('border-l-4', 'border-green-500');
+
                 div.innerHTML = `
                     <span class="truncate mr-2 font-medium">${l.name} <span class="text-xs text-gray-500 font-normal">(${l.card})</span></span>
                     <button type="button" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 shrink-0"
@@ -523,25 +557,24 @@
 
         if(count > 0) box.classList.remove('hidden');
         else box.classList.add('hidden');
+        
+        // Ensure scroll is at top
+        list.scrollTop = 0;
     }
 
     // --- ADD LABOUR LOGIC ---
     
-    // 1. Add Single (called by Button or Suggestion)
     window.addSingleLabour = function(index) {
         if(index >= allLabours.length) return;
-        
         const success = addToTable(allLabours[index]);
         if(success) {
-            // Update suggestions based on the ORIGINAL search base
-            // (or move base forward? User said "update list", keeping base ensures flow)
-            if(lastSearchedIndex !== -1) {
-                refreshSuggestions(lastSearchedIndex);
-            }
+            // Update suggestions to show NEXT neighbours immediately
+            // This creates the "Auto Scroll" effect by putting next item at top
+            lastSearchedIndex = index;
+            refreshSuggestions(index);
         }
     };
 
-    // 2. Add Button (Individual Panel)
     const btnIndivAdd = document.getElementById('btn-add-individual');
     if(btnIndivAdd) {
         btnIndivAdd.addEventListener('click', function() {
@@ -551,8 +584,15 @@
             
             if(foundIndex !== -1) {
                 addSingleLabour(foundIndex);
-                document.getElementById('labour-search-input').value = ''; 
-                lastSearchedIndex = foundIndex; // Update base
+                
+                const slashIndex = inputVal.lastIndexOf('/');
+                if (slashIndex !== -1) {
+                    document.getElementById('labour-search-input').value = inputVal.substring(0, slashIndex + 1);
+                } else {
+                    document.getElementById('labour-search-input').value = '';
+                }
+                
+                lastSearchedIndex = foundIndex; 
                 refreshSuggestions(foundIndex);
             } else {
                 alert("Labour not found. Please select from dropdown.");
@@ -560,11 +600,9 @@
         });
     }
 
-    // 3. Main Add + UPDATED DUPLICATE CHECK
     function addToTable(labour) {
         const tbody = document.getElementById('labour-tbody');
         
-        // FIX: Check (Name + Card) combination
         let isDuplicate = false;
         tbody.querySelectorAll('tr').forEach(tr => {
             const existingName = tr.querySelector('input[name^="labour_name_"]').value;
@@ -589,18 +627,19 @@
             <td class="px-4 py-3 text-center"><button type="button" class="text-red-500 hover:text-red-700" onclick="removeRow(this)"><i class="fa-solid fa-xmark"></i></button></td>
         `;
         tbody.appendChild(tr);
+        
+        playSuccessSound();
+
         updatePreviewTitle();
         return true;
     }
 
-    // Helper to remove row and refresh suggestions if needed
     window.removeRow = function(btn) {
         btn.closest('tr').remove();
         updatePreviewTitle();
         if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
     }
 
-    // 4. Batch Add
     document.getElementById('btn-add-batch').addEventListener('click', function() {
         if (allLabours.length === 0) { alert("Load list first."); return; }
         const countToAdd = parseInt(document.getElementById('labour_count').value) || 10;
@@ -617,13 +656,11 @@
         if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
     });
 
-    // --- AUTO SAVE LOGIC ---
     async function autoSaveDemand() {
         const panchayat = document.getElementById('panchayat').value;
         const work_code = document.getElementById('hidden_work_code').value;
         const rows = document.querySelectorAll('#labour-tbody tr');
         
-        // Basic Validation (Silent or minimal alert if empty)
         if(!work_code || rows.length === 0) return; 
 
         const labourers = [];
@@ -635,7 +672,6 @@
             }
         });
 
-        // Fire and forget (Async) - User proceeds to print view immediately
         fetch('/api/save-demand', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -649,7 +685,24 @@
           .catch(err => console.error("Auto-save failed", err));
     }
 
-    // --- UTILS & LISTENERS ---
+    document.getElementById('btn-reset-all').addEventListener('click', () => {
+        if(confirm("Are you sure you want to RESET EVERYTHING?")) {
+             document.getElementById('labour-tbody').innerHTML = '';
+             currentLabourIndex = 0;
+             updateStats();
+             updatePreviewTitle();
+             if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
+
+             document.getElementById('hidden_scheme_name').value = '';
+             document.getElementById('hidden_work_code').value = '';
+             document.getElementById('panchayat').value = '';
+             document.getElementById('scheme_select').value = '';
+             document.getElementById('preview_scheme_name').textContent = 'None';
+             document.getElementById('preview_work_code').textContent = 'None';
+             document.getElementById('scheme-preview-text').classList.add('hidden');
+        }
+    });
+
     function updatePreviewTitle() {
         const count = document.getElementById('labour-tbody').querySelectorAll('tr').length;
         document.getElementById('form-preview-title').textContent = `Form Preview (${count} Labours)`;
@@ -710,16 +763,6 @@
         document.getElementById('preview_scheme_name').textContent = data.name;
         document.getElementById('preview_work_code').textContent = data.code;
         document.getElementById('scheme-preview-text').classList.remove('hidden');
-    });
-
-    document.getElementById('btn-reset-labours').addEventListener('click', () => {
-        if(confirm("Reset queue?")) {
-             document.getElementById('labour-tbody').innerHTML = '';
-             currentLabourIndex = 0;
-             updateStats();
-             updatePreviewTitle();
-             if(lastSearchedIndex !== -1) refreshSuggestions(lastSearchedIndex);
-        }
     });
 </script>
 {% endblock %}

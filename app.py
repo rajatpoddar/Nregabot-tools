@@ -665,7 +665,34 @@ def merge_downloads():
 
 # --- ADMIN & PRINT FEATURES ---
 
-# 1. View/Print Saved Demand
+# Helper function to find Scheme Name from Public Data using Work Code
+def find_scheme_name_by_work_code(panchayat, target_work_code):
+    if not target_work_code: return None
+    
+    # Ensure PUBLIC_DATA_DIR is available
+    if not os.path.exists(PUBLIC_DATA_DIR): return None
+
+    # Search recursively in public_data directory
+    for root, dirs, files in os.walk(PUBLIC_DATA_DIR):
+        for file in files:
+            # Check if file looks like a scheme file for this panchayat
+            # e.g., "Palojori_schemes.csv" matches panchayat "Palojori"
+            if file.lower().endswith('.csv') and "schemes" in file.lower():
+                if panchayat.lower() in file.lower():
+                    try:
+                        with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as f:
+                            reader = csv.reader(f)
+                            for row in reader:
+                                if len(row) >= 2:
+                                    # CSV Format: Scheme Name, Work Code
+                                    # Check if target code matches (trim spaces)
+                                    if target_work_code.strip() == row[1].strip(): 
+                                        return row[0].strip()
+                    except Exception:
+                        continue
+    return None
+
+# 1. View/Print Saved Demand (Updated)
 @app.route('/view-demand')
 def view_demand():
     file_path = request.args.get('path')
@@ -699,16 +726,27 @@ def view_demand():
         return f"Error reading file: {e}"
 
     # Folder structure se Panchayat aur Date nikalo
+    # Path format: user_data/Demand Form/{Date}/{Panchayat}/{File}
     path_parts = file_path.split(os.sep)
     panchayat = "Unknown"
-    if len(path_parts) >= 3:
-        panchayat = path_parts[-2] # Folder name
+    
+    # Try to extract panchayat name reliably
+    if len(path_parts) >= 2:
+        # File folder ke just upar wala folder panchayat hota hai
+        panchayat = path_parts[-2]
+
+    # --- FIX START: Dynamically fetch Scheme Name ---
+    scheme_full_name = find_scheme_name_by_work_code(panchayat, work_code)
+    
+    if not scheme_full_name:
+        scheme_full_name = 'Scheme Name Not Found (File missing in Public Data)'
+    # --- FIX END ---
 
     data = {
         'panchayat': panchayat,
-        'scheme_full_name': 'Saved Demand File (Scheme Name Not Stored)', # CSV me scheme name nahi hota
+        'scheme_full_name': scheme_full_name,
         'work_code': work_code,
-        'date': datetime.now().strftime('%d/%m/%Y'), # Print date
+        'date': datetime.now().strftime('%d/%m/%Y'), # Print date as today
         'labourers': labourers
     }
     
