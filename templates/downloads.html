@@ -10,7 +10,7 @@
     <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
         <div>
             <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">Demand Files Archive</h2>
-            <p class="text-xs text-gray-500">Auto-saved generated files (Newest first)</p>
+            <p class="text-xs text-gray-500">Manage, Print, or Delete your demand files.</p>
         </div>
         
         <div class="flex gap-3 w-full md:w-auto">
@@ -19,29 +19,30 @@
             
             <button type="button" onclick="validateAndMerge()"
                 class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center cursor-pointer">
-                <i class="fa-solid fa-object-group mr-2"></i> Merge & Download
+                <i class="fa-solid fa-object-group mr-2"></i> Merge
             </button>
         </div>
     </div>
 
     <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto min-h-[400px]">
             <table class="min-w-full text-sm text-left">
                 <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-gray-700">
                     <tr>
                         <th class="px-4 py-3 w-10 text-center">
                             <input type="checkbox" onclick="toggleAll(this)" class="rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer">
                         </th>
+                        <th class="px-6 py-3">Status</th>
                         <th class="px-6 py-3">Date</th>
                         <th class="px-6 py-3">Panchayat</th>
                         <th class="px-6 py-3">Filename</th>
-                        <th class="px-6 py-3 text-right">Action</th>
+                        <th class="px-6 py-3 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="file-table-body" class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-300">
                     {% if files %}
                     {% for file in files %}
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <tr id="row-{{ loop.index }}" class="transition-colors {% if file.is_done %}bg-green-50 dark:bg-green-900/20{% else %}hover:bg-gray-50 dark:hover:bg-gray-800/50{% endif %}">
                         <td class="px-4 py-3 text-center">
                             <input type="checkbox" 
                                    name="selected_files" 
@@ -50,27 +51,54 @@
                                    class="file-checkbox rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer">
                         </td>
                         
+                        <td class="px-6 py-3">
+                            <button type="button" onclick="toggleStatus('{{ file.path }}', {{ loop.index }})"
+                                class="status-btn px-2 py-1 rounded text-xs font-bold border transition-colors 
+                                {% if file.is_done %}
+                                    bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300
+                                {% else %}
+                                    bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200
+                                {% endif %}">
+                                {% if file.is_done %}DONE{% else %}PENDING{% endif %}
+                            </button>
+                        </td>
+
                         <td class="px-6 py-3 whitespace-nowrap">
                             <div class="font-medium">{{ file.date }}</div>
                             <div class="text-xs text-gray-400">{{ file.time }}</div>
                         </td>
-                        <td class="px-6 py-3 font-medium text-primary">{{ file.panchayat }}</td>
-                        <td class="px-6 py-3 font-mono text-xs text-gray-500">{{ file.filename }}</td>
-                        <td class="px-6 py-3 text-right space-x-2">
-                            <a href="{{ url_for('view_demand', path=file.path) }}" target="_blank"
-                                class="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-md text-xs font-bold transition-colors">
-                                <i class="fa-solid fa-print mr-1"></i> Print
+                        
+                        <td class="px-6 py-3 font-medium">
+                            {% if file.panchayat == 'Unknown' %}
+                                <span class="text-gray-400 italic">Unknown</span>
+                            {% else %}
+                                <span class="text-primary">{{ file.panchayat }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="px-6 py-3 font-mono text-xs text-gray-500">
+                            <span class="file-name-span">{{ file.filename }}</span>
+                        </td>
+                        
+                        <td class="px-6 py-3 text-right flex justify-end gap-2">
+                            <a href="{{ url_for('view_demand', path=file.path) }}" target="_blank" title="Print"
+                                class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors">
+                                <i class="fa-solid fa-print"></i>
                             </a>
-                            <a href="{{ url_for('static', filename=file.path) }}" download
-                                class="inline-flex items-center px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-md text-xs font-bold transition-colors">
-                                <i class="fa-solid fa-download mr-1"></i> Download
+                            <a href="{{ url_for('static', filename=file.path) }}" download title="Download"
+                                class="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors">
+                                <i class="fa-solid fa-download"></i>
                             </a>
+                            <button type="button" onclick="deleteFile('{{ file.path }}', {{ loop.index }})" title="Delete"
+                                class="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
                     {% else %}
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">No saved files found yet.</td>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">No saved files found yet.</td>
                     </tr>
                     {% endif %}
                 </tbody>
@@ -90,7 +118,6 @@
         });
     });
 
-    // Toggle All Checkboxes
     function toggleAll(source) {
         const checkboxes = document.getElementsByName('selected_files');
         for(let i=0; i<checkboxes.length; i++) {
@@ -100,44 +127,88 @@
         }
     }
 
-    // --- NEW VALIDATION & MERGE FUNCTION ---
+    // --- NEW: Toggle Status (Mark as Done) ---
+    async function toggleStatus(path, rowIndex) {
+        const btn = document.querySelector(`#row-${rowIndex} .status-btn`);
+        const row = document.getElementById(`row-${rowIndex}`);
+        const originalText = btn.innerText;
+        btn.innerText = '...';
+        
+        try {
+            const res = await fetch('/api/toggle-status', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ path: path })
+            });
+            const data = await res.json();
+            
+            if(data.status === 'success') {
+                if(data.is_done) {
+                    btn.innerText = 'DONE';
+                    btn.className = "status-btn px-2 py-1 rounded text-xs font-bold border transition-colors bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300";
+                    row.classList.add('bg-green-50', 'dark:bg-green-900/20');
+                    row.classList.remove('hover:bg-gray-50', 'dark:hover:bg-gray-800/50');
+                } else {
+                    btn.innerText = 'PENDING';
+                    btn.className = "status-btn px-2 py-1 rounded text-xs font-bold border transition-colors bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200";
+                    row.classList.remove('bg-green-50', 'dark:bg-green-900/20');
+                    row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-800/50');
+                }
+                // Reload page to fix paths for print/download (optional, but safer)
+                window.location.reload(); 
+            } else {
+                alert('Error: ' + data.message);
+                btn.innerText = originalText;
+            }
+        } catch(e) {
+            alert('Failed to toggle status');
+            btn.innerText = originalText;
+        }
+    }
+
+    // --- NEW: Delete File ---
+    async function deleteFile(path, rowIndex) {
+        if(!confirm("Are you sure you want to permanently delete this file?")) return;
+        
+        try {
+            const res = await fetch('/api/delete-file', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ path: path })
+            });
+            const data = await res.json();
+            
+            if(data.status === 'success') {
+                const row = document.getElementById(`row-${rowIndex}`);
+                row.style.opacity = '0';
+                setTimeout(() => row.remove(), 300);
+            } else {
+                alert("Error deleting file: " + data.message);
+            }
+        } catch(e) {
+            alert("Delete failed.");
+        }
+    }
+
     function validateAndMerge() {
         const checkboxes = document.querySelectorAll('input[name="selected_files"]:checked');
-        
-        // 1. Minimum File Check
-        if (checkboxes.length < 2) {
-            alert("Merge karne ke liye kam se kam 2 files select karein.");
-            return;
-        }
+        if (checkboxes.length < 2) { alert("Merge karne ke liye kam se kam 2 files select karein."); return; }
 
-        // 2. Panchayat Consistency Check
         let firstPanchayat = null;
         let isDifferent = false;
 
         checkboxes.forEach((cb) => {
             const currentPanchayat = cb.getAttribute('data-panchayat');
-            
-            if (firstPanchayat === null) {
-                firstPanchayat = currentPanchayat;
-            } else if (currentPanchayat !== firstPanchayat) {
-                isDifferent = true;
-            }
+            if (firstPanchayat === null) firstPanchayat = currentPanchayat;
+            else if (currentPanchayat !== firstPanchayat) isDifferent = true;
         });
 
         if (isDifferent) {
-            alert("Error: Aap alag-alag Panchayat ki files ko merge nahi kar sakte!\n\nKripya sirf ek hi Panchayat ki files select karein.");
-            return; // Process wahin rok do
+            alert("Error: Alag-alag Panchayat ki files merge nahi ho sakti.");
+            return;
         }
 
-        // 3. Ask for Filename (User Input)
-        // Default value mein hum Panchayat ka naam dikha dete hain taaki user ko aasani ho
-        let userFilename = prompt("Enter File Name Prefix:\n(Date aur Time automatically add ho jayega)", firstPanchayat);
-
-        if (userFilename === null) {
-            return; // Cancel clicked
-        }
+        let userFilename = prompt("Enter File Name Prefix:", firstPanchayat);
+        if (userFilename === null) return;
         
-        // 4. Submit Form
         document.getElementById('custom_filename').value = userFilename;
         document.getElementById('mergeForm').submit();
     }

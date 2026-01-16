@@ -18,6 +18,8 @@ Database file
 *.db
 *.sqlite3
 vendors.db
+static/public_data/
+static/user_data
 
 OS-specific files
 

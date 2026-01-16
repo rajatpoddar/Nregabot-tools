@@ -542,43 +542,90 @@ def save_demand_api():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 # --- NEW ROUTE: Downloads Manager ---
+@app.route('/api/toggle-status', methods=['POST'])
+def toggle_status():
+    try:
+        rel_path = request.json.get('path')
+        if not rel_path: return jsonify({'status': 'error', 'message': 'Path required'}), 400
+        
+        full_path = os.path.join(app.root_path, 'static', rel_path)
+        directory = os.path.dirname(full_path)
+        filename = os.path.basename(full_path)
+        
+        if not os.path.exists(full_path):
+            return jsonify({'status': 'error', 'message': 'File not found'}), 404
+
+        # Toggle Logic: DONE_ prefix add/remove karein
+        if filename.startswith('DONE_'):
+            new_filename = filename.replace('DONE_', '', 1)
+            is_done = False
+        else:
+            new_filename = f"DONE_{filename}"
+            is_done = True
+            
+        new_full_path = os.path.join(directory, new_filename)
+        os.rename(full_path, new_full_path)
+        
+        return jsonify({'status': 'success', 'is_done': is_done, 'new_filename': new_filename})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/delete-file', methods=['POST'])
+def delete_file():
+    try:
+        rel_path = request.json.get('path')
+        if not rel_path: return jsonify({'status': 'error', 'message': 'Path required'}), 400
+        
+        # Security: Ensure we only delete from DEMAND_SAVE_DIR
+        full_path = os.path.join(app.root_path, 'static', rel_path)
+        
+        if not os.path.abspath(full_path).startswith(os.path.abspath(DEMAND_SAVE_DIR)):
+             return jsonify({'status': 'error', 'message': 'Access Denied'}), 403
+
+        if os.path.exists(full_path):
+            os.remove(full_path)
+            return jsonify({'status': 'success', 'message': 'Deleted'})
+        else:
+            return jsonify({'status': 'error', 'message': 'File not found'}), 404
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+# --- UPDATED DOWNLOADS ROUTE ---
 @app.route('/downloads')
 def downloads():
     files_list = []
     
-    # Directory walk karke saari CSV files dhundho
     for root, dirs, files in os.walk(DEMAND_SAVE_DIR):
         for file in files:
             if file.endswith('.csv'):
                 full_path = os.path.join(root, file)
-                
-                # FIX: Robust Path Parsing for Panchayat Name
                 rel_path = os.path.relpath(full_path, DEMAND_SAVE_DIR)
-                # Slash ko normalise karein taaki Windows/Linux dono pe chale
                 path_parts = rel_path.replace('\\', '/').split('/')
                 
-                # Structure: Date/Panchayat/File.csv
                 date_folder = path_parts[0] if len(path_parts) > 0 else "Unknown"
                 panchayat_folder = path_parts[1] if len(path_parts) > 1 else "Unknown"
                 
-                # FIX: Convert File Timestamp to IST
+                # Check Status
+                is_done = file.startswith('DONE_')
+                display_name = file.replace('DONE_', '', 1) if is_done else file
+                
+                # Timestamp Logic
                 timestamp = os.path.getmtime(full_path)
                 file_dt_utc = datetime.fromtimestamp(timestamp, timezone.utc)
                 file_dt_ist = file_dt_utc.astimezone(IST)
-                created_time = file_dt_ist.strftime('%I:%M %p')
                 
                 files_list.append({
-                    'filename': file,
+                    'filename': display_name,
+                    'real_filename': file, # For logic
                     'date': date_folder,
                     'panchayat': panchayat_folder,
-                    'time': created_time,
-                    'path': os.path.relpath(full_path, 'static'), # URL ke liye 'static' ke relative path
-                    'timestamp': timestamp # Sorting ke liye
+                    'time': file_dt_ist.strftime('%I:%M %p'),
+                    'path': os.path.relpath(full_path, 'static').replace('\\', '/'),
+                    'timestamp': timestamp,
+                    'is_done': is_done
                 })
 
-    # Sabse nayi file upar dikhane ke liye sort karein
     files_list.sort(key=lambda x: x['timestamp'], reverse=True)
-    
     return render_template('downloads.html', files=files_list)
 
 @app.route('/merge-downloads', methods=['POST'])
