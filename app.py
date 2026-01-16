@@ -11,6 +11,7 @@ from whitenoise import WhiteNoise
 import os
 import json
 import shutil
+import math
 
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key'
@@ -593,8 +594,14 @@ def delete_file():
 # --- UPDATED DOWNLOADS ROUTE ---
 @app.route('/downloads')
 def downloads():
+    # 1. PIN Protection (Security Check)
+    if not session.get('admin_logged_in'):
+        flash("Access Restricted: Please login to view saved files.", "warning")
+        return redirect(url_for('admin_login'))
+
     files_list = []
     
+    # Files collect karna (Purana logic same hai)
     for root, dirs, files in os.walk(DEMAND_SAVE_DIR):
         for file in files:
             if file.endswith('.csv'):
@@ -605,18 +612,16 @@ def downloads():
                 date_folder = path_parts[0] if len(path_parts) > 0 else "Unknown"
                 panchayat_folder = path_parts[1] if len(path_parts) > 1 else "Unknown"
                 
-                # Check Status
                 is_done = file.startswith('DONE_')
                 display_name = file.replace('DONE_', '', 1) if is_done else file
                 
-                # Timestamp Logic
                 timestamp = os.path.getmtime(full_path)
                 file_dt_utc = datetime.fromtimestamp(timestamp, timezone.utc)
                 file_dt_ist = file_dt_utc.astimezone(IST)
                 
                 files_list.append({
                     'filename': display_name,
-                    'real_filename': file, # For logic
+                    'real_filename': file,
                     'date': date_folder,
                     'panchayat': panchayat_folder,
                     'time': file_dt_ist.strftime('%I:%M %p'),
@@ -625,8 +630,54 @@ def downloads():
                     'is_done': is_done
                 })
 
+    # Sorting (Newest First)
     files_list.sort(key=lambda x: x['timestamp'], reverse=True)
-    return render_template('downloads.html', files=files_list)
+
+    # 2. Pagination Logic
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # Ek page par kitni files dikhengi
+    total_files = len(files_list)
+    total_pages = math.ceil(total_files / per_page)
+    
+    # Slice list for current page
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_files = files_list[start:end]
+
+    return render_template('downloads.html', 
+                           files=paginated_files, 
+                           page=page, 
+                           total_pages=total_pages,
+                           total_files=total_files)
+
+
+@app.route('/api/delete-multiple-files', methods=['POST'])
+def delete_multiple_files():
+    try:
+        if not session.get('admin_logged_in'):
+            return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+
+        paths = request.json.get('paths', [])
+        if not paths: 
+            return jsonify({'status': 'error', 'message': 'No files selected'}), 400
+        
+        deleted_count = 0
+        
+        for rel_path in paths:
+            # Security: Ensure path is valid
+            full_path = os.path.join(app.root_path, 'static', rel_path)
+            
+            # Check if file is inside DEMAND_SAVE_DIR
+            if not os.path.abspath(full_path).startswith(os.path.abspath(DEMAND_SAVE_DIR)):
+                continue
+
+            if os.path.exists(full_path):
+                os.remove(full_path)
+                deleted_count += 1
+        
+        return jsonify({'status': 'success', 'message': f'Deleted {deleted_count} files.'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/merge-downloads', methods=['POST'])
 def merge_downloads():

@@ -10,13 +10,18 @@
     <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
         <div>
             <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100">Demand Files Archive</h2>
-            <p class="text-xs text-gray-500">Manage, Print, or Delete your demand files.</p>
+            <p class="text-xs text-gray-500">Total Files: {{ total_files }} | Page {{ page }} of {{ total_pages }}</p>
         </div>
         
         <div class="flex gap-3 w-full md:w-auto">
-            <input type="text" id="file-search" placeholder="Search..."
+            <input type="text" id="file-search" placeholder="Search on this page..."
                 class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-primary">
             
+            <button type="button" onclick="deleteSelectedMultiple()"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center cursor-pointer">
+                <i class="fa-solid fa-trash-can mr-2"></i> Delete
+            </button>
+
             <button type="button" onclick="validateAndMerge()"
                 class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center cursor-pointer">
                 <i class="fa-solid fa-object-group mr-2"></i> Merge
@@ -24,8 +29,8 @@
         </div>
     </div>
 
-    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card">
-        <div class="overflow-x-auto min-h-[400px]">
+    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-dark-card flex flex-col justify-between min-h-[500px]">
+        <div class="overflow-x-auto">
             <table class="min-w-full text-sm text-left">
                 <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium border-b border-gray-200 dark:border-gray-700">
                     <tr>
@@ -104,11 +109,38 @@
                 </tbody>
             </table>
         </div>
+
+        {% if total_pages > 1 %}
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+                Showing page <span class="font-bold">{{ page }}</span> of <span class="font-bold">{{ total_pages }}</span>
+            </div>
+            <div class="flex gap-2">
+                {% if page > 1 %}
+                <a href="{{ url_for('downloads', page=page-1) }}" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Previous</a>
+                {% endif %}
+                
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <span class="px-3 py-1 bg-primary text-white border border-primary rounded text-sm">{{ p }}</span>
+                    {% elif p <= 3 or p > total_pages - 3 or (p > page - 2 and p < page + 2) %}
+                    <a href="{{ url_for('downloads', page=p) }}" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-600">{{ p }}</a>
+                    {% elif p == 4 or p == total_pages - 3 %}
+                    <span class="px-2 py-1 text-gray-400">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                <a href="{{ url_for('downloads', page=page+1) }}" class="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-600">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </form>
 
 <script>
-    // Search Function
+    // Search Function (Works only for current page items)
     document.getElementById('file-search').addEventListener('keyup', function () {
         const value = this.value.toLowerCase();
         const rows = document.querySelectorAll('#file-table-body tr');
@@ -127,7 +159,38 @@
         }
     }
 
-    // --- NEW: Toggle Status (Mark as Done) ---
+    // --- Bulk Delete Function ---
+    async function deleteSelectedMultiple() {
+        const checkboxes = document.querySelectorAll('input[name="selected_files"]:checked');
+        if (checkboxes.length === 0) {
+            alert("Please select files to delete.");
+            return;
+        }
+
+        if(!confirm(`Are you sure you want to PERMANENTLY delete ${checkboxes.length} selected files?`)) return;
+
+        const paths = Array.from(checkboxes).map(cb => cb.value);
+
+        try {
+            const res = await fetch('/api/delete-multiple-files', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ paths: paths })
+            });
+            
+            const data = await res.json();
+            
+            if(data.status === 'success') {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        } catch(e) {
+            alert("Delete request failed.");
+        }
+    }
+
     async function toggleStatus(path, rowIndex) {
         const btn = document.querySelector(`#row-${rowIndex} .status-btn`);
         const row = document.getElementById(`row-${rowIndex}`);
@@ -153,7 +216,7 @@
                     row.classList.remove('bg-green-50', 'dark:bg-green-900/20');
                     row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-800/50');
                 }
-                // Reload page to fix paths for print/download (optional, but safer)
+                // Reload to keep file paths consistent if filename changed
                 window.location.reload(); 
             } else {
                 alert('Error: ' + data.message);
@@ -165,7 +228,6 @@
         }
     }
 
-    // --- NEW: Delete File ---
     async function deleteFile(path, rowIndex) {
         if(!confirm("Are you sure you want to permanently delete this file?")) return;
         
